@@ -1,8 +1,12 @@
-
-# Playwright
 node_modules/
-/test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
-/playwright/.auth/
+dist/
+reports/
+test-results/
+playwright-report/
+blob-report/
+.temp-codegen.ts
+auth.json
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

@@ -1,0 +1,67 @@
+{
+  "id": "tc_example_002",
+  "name": "Travel Desk - Create Business Trip Request",
+  "description": "Create a new business trip request (Tạo yêu cầu Công tác)",
+  "baseUrl": "https://ops-aad.ehr-test.vib",
+  "tags": ["traveldesk", "regression"],
+  "steps": [
+    {
+      "id": "step_0",
+      "action": "navigate",
+      "value": "https://ops-aad.ehr-test.vib/travel-desk",
+      "description": "Navigate to Travel Desk"
+    },
+    {
+      "id": "step_1",
+      "action": "assert_visible",
+      "selector": "text=\"Travel Desk\"",
+      "description": "Verify Travel Desk page loaded"
+    },
+    {
+      "id": "step_2",
+      "action": "click",
+      "selector": "role=button[name=\"Tạo yêu cầu\"]",
+      "description": "Click Create Request button"
+    },
+    {
+      "id": "step_3",
+      "action": "wait",
+      "value": "1500",
+      "timeout": 1500,
+      "description": "Wait for form to load"
+    },
+    {
+      "id": "step_4",
+      "action": "fill",
+      "selector": "placeholder=\"Nhập lý do công tác\"",
+      "value": "Họp chi nhánh Q1 2026",
+      "description": "Fill in trip reason"
+    },
+    {
+      "id": "step_5",
+      "action": "click",
+      "selector": ".ant-select:has-text(\"Chọn chi nhánh\")",
+      "description": "Open branch selector"
+    },
+    {
+      "id": "step_6",
+      "action": "click",
+      "selector": "text=\"VIB Hà Nội\"",
+      "description": "Select VIB Ha Noi branch"
+    },
+    {
+      "id": "step_7",
+      "action": "click",
+      "selector": "role=button[name=\"Gửi yêu cầu\"]",
+      "description": "Submit request"
+    },
+    {
+      "id": "step_8",
+      "action": "assert_visible",
+      "selector": "text=\"Tạo yêu cầu thành công\"",
+      "description": "Verify success message"
+    }
+  ],
+  "createdAt": "2026-04-13T10:00:00.000Z",
+  "updatedAt": "2026-04-13T10:00:00.000Z"
+}

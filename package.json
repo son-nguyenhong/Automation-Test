@@ -1,15 +1,34 @@
 {
-  "name": "automationtest_ts",
+  "name": "vib-automation-test",
   "version": "1.0.0",
-  "description": "",
+  "description": "VIB Automation Test Studio - Playwright TypeScript",
   "main": "index.js",
-  "scripts": {},
-  "keywords": [],
-  "author": "",
+  "scripts": {
+    "dashboard": "npx ts-node dashboard.ts",
+    "auth": "npx playwright test --project chromium --headed -g FORCE_NO_MATCH 2>nul || echo Auth ready",
+    "auth:reset": "del auth.json 2>nul && echo Auth cleared. Run npm test to re-login.",
+    "record": "npx ts-node scripts/record.ts",
+    "generate": "npx ts-node scripts/generate.ts",
+    "test": "npx playwright test --project chromium",
+    "test:headed": "npx playwright test --project chromium --headed",
+    "test:noauth": "npx playwright test --project no-auth",
+    "test:ui": "npx playwright test --ui",
+    "test:debug": "npx playwright test --debug",
+    "report": "npx playwright show-report reports/html",
+    "test:suite": "npx ts-node scripts/run-suite.ts"
+  },
+  "keywords": ["automation", "playwright", "testing", "vib"],
+  "author": "Son Nguyen Hong",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
     "@playwright/test": "^1.59.1",
-    "@types/node": "^25.6.0"
+    "@types/node": "^25.6.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.0"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "@types/express": "^5.0.0"
   }
 }
