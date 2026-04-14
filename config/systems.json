@@ -1,0 +1,24 @@
+{
+  "systems": [
+    {
+      "id": "ops-portal",
+      "name": "OPS Portal",
+      "url": "https://ops-aad.ehr-test.vib",
+      "description": "Account Management & Operations",
+      "env": "test",
+      "authType": "sso",
+      "tags": ["core", "ops"],
+      "modules": ["account-management", "user-admin"]
+    },
+    {
+      "id": "travel-desk",
+      "name": "Travel Desk",
+      "url": "https://ops-aad.ehr-test.vib/travel-desk",
+      "description": "Travel & Business Trip Requests",
+      "env": "test",
+      "authType": "sso",
+      "tags": ["hr", "travel"],
+      "modules": ["create-request", "approval", "reports"]
+    }
+  ]
+}
