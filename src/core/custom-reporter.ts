@@ -64,6 +64,18 @@ class VIBReporter implements Reporter {
 
   async onEnd(result: FullResult) {
     const totalDuration = Date.now() - this.startTime;
+
+    // Deduplicate: keep only the last attempt (highest retry) per test
+    const lastAttempt = new Map<string, TestRecord>();
+    for (const r of this.results) {
+      const key = r.suite + '::' + r.title;
+      const existing = lastAttempt.get(key);
+      if (!existing || r.retry > existing.retry) {
+        lastAttempt.set(key, r);
+      }
+    }
+    this.results = Array.from(lastAttempt.values());
+
     const passed = this.results.filter((r) => r.status === 'passed').length;
     const failed = this.results.filter((r) => r.status === 'failed').length;
     const skipped = this.results.filter((r) => r.status === 'skipped').length;

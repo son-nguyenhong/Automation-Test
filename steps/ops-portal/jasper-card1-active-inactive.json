@@ -1,6 +1,6 @@
 {
-  "id": "tc_1776313361159",
-  "name": "JASPER_CARD1 - Active => InActive",
+  "id": "tc_1776315287955",
+  "name": "JASPER_CARD1 Active => Inactive",
   "description": "From codegen",
   "baseUrl": "https://ops-aad.ehr-test.vib",
   "tags": [
@@ -65,11 +65,25 @@
     },
     {
       "id": "s9",
+      "action": "assert_text",
+      "selector": "unknown",
+      "expected": "Active",
+      "description": "Assert \"Active\""
+    },
+    {
+      "id": "s10",
       "action": "click",
       "selector": "role=switch[name=\"Active Inactive\"]",
       "description": "Click role=switch[name=\"Active Inactive\"]"
+    },
+    {
+      "id": "s11",
+      "action": "assert_text",
+      "selector": "unknown",
+      "expected": "Inactive",
+      "description": "Assert \"Inactive\""
     }
   ],
-  "createdAt": "2026-04-16T04:22:41.159Z",
-  "updatedAt": "2026-04-16T04:22:41.159Z"
+  "createdAt": "2026-04-16T04:54:47.955Z",
+  "updatedAt": "2026-04-16T04:54:47.955Z"
 }

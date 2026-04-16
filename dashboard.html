@@ -78,7 +78,12 @@ input,textarea,select{background:var(--s3);border:1px solid var(--border);color:
 
 <div class="mo" id="addSysMo"><div class="mo-c"><h3>Add System</h3><div class="fg"><label class="fl">Name</label><input id="asN" placeholder="OPS Portal"></div><div class="fg"><label class="fl">URL</label><input id="asU" placeholder="https://..."></div><div class="fg"><label class="fl">Description</label><input id="asD"></div><div class="row"><div class="fg"><label class="fl">Environment</label><select id="asE"><option>test</option><option>staging</option><option>production</option></select></div><div class="fg"><label class="fl">Tags</label><input id="asT" placeholder="core"></div></div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-o" onclick="closeMo('addSysMo')">Cancel</button><button class="btn btn-a" onclick="saveSys()">Save</button></div></div></div>
 
-<div class="mo" id="tcMo"><div class="mo-c"><h3 id="tcTi">New Test Case</h3><div class="fg"><label class="fl">Name</label><input id="tcN"></div><div class="fg"><label class="fl">Description</label><input id="tcD"></div><div class="row"><div class="fg"><label class="fl">Base URL</label><input id="tcU"></div><div class="fg"><label class="fl">Tags</label><input id="tcTg"></div></div><div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 6px"><label class="fl" style="margin:0">Steps</label><button class="btn btn-sm btn-o" onclick="addSR()">+ Step</button></div><div id="tcSR"></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn btn-o" onclick="closeMo('tcMo')">Cancel</button><button class="btn btn-a" onclick="saveTc()">Save</button></div></div></div>
+<div class="mo" id="tcMo"><div class="mo-c" style="width:900px"><h3 id="tcTi">New Test Case</h3><div class="fg"><label class="fl">Name</label><input id="tcN"></div><div class="fg"><label class="fl">Description</label><input id="tcD"></div><div class="row"><div class="fg"><label class="fl">Base URL</label><input id="tcU"></div><div class="fg"><label class="fl">Tags</label><input id="tcTg"></div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px">
+<div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><label class="fl" style="margin:0">Steps</label><div style="display:flex;gap:4px"><button class="btn btn-sm btn-o" onclick="addSR()">+ Step</button><button class="btn btn-sm btn-a" onclick="stepsToCode()" title="Steps → Code">Steps → Code</button></div></div><div id="tcSR" style="max-height:340px;overflow-y:auto"></div></div>
+<div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><label class="fl" style="margin:0">CodeGen</label><button class="btn btn-sm btn-a" onclick="codeToSteps()" title="Code → Steps">Code → Steps</button></div><textarea id="tcCode" style="min-height:340px;max-height:none;height:340px;font-size:11px;resize:vertical" placeholder="await page.goto('...')&#10;await page.getByText('...').click();&#10;await page.getByRole('textbox', { name: '...' }).fill('...');"></textarea></div>
+</div>
+<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn btn-o" onclick="closeMo('tcMo')">Cancel</button><button class="btn btn-a" onclick="saveTc()">Save</button></div></div></div>
 
 <div class="mo" id="ssoMo"><div class="mo-c" style="width:480px"><h3 style="display:flex;align-items:center;gap:8px">&#128274; SSO Connection<span class="sys-dot" id="mDot" style="margin-left:auto"></span></h3><div id="conSt"></div><div style="margin-bottom:14px"><p style="color:var(--t3);margin-bottom:14px;font-size:12px">Click Connect &rarr; Chrome opens &rarr; login &rarr; close browser &rarr; session saved.</p><button class="btn btn-a big" id="conBtn" onclick="doConnect()">Connect SSO</button></div><div id="conInfo" style="display:none;margin-bottom:14px"><div style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:14px"><div style="font-size:11px;color:var(--t3);text-transform:uppercase;font-weight:600;margin-bottom:6px">Session Info</div><div id="conDetail" style="color:var(--t2);font-size:13px"></div></div></div><div style="display:flex;justify-content:flex-end"><button class="btn btn-o" onclick="closeMo('ssoMo')">Close</button></div></div></div>
 
@@ -269,6 +274,45 @@ function extractSel(l) {
   if (m = l.match(/getByLabel\(['"](.+?)['"]\)/)) return 'label="' + m[1] + '"';
   if (m = l.match(/locator\(['"](.+?)['"]\)/)) return m[1];
   return 'unknown';
+}
+
+function selToCode(sel) {
+  var m;
+  if (m = (sel||'').match(/^role=(\w+)\[name="(.*)"\]$/)) return "getByRole('" + m[1] + "', { name: '" + m[2] + "' })";
+  if (m = (sel||'').match(/^text="(.*)"$/)) return "getByText('" + m[1] + "')";
+  if (m = (sel||'').match(/^label="(.*)"$/)) return "getByLabel('" + m[1] + "')";
+  if (m = (sel||'').match(/^placeholder="(.*)"$/)) return "getByPlaceholder('" + m[1] + "')";
+  if (sel) return "locator('" + sel + "')";
+  return "locator('TODO')";
+}
+
+function stepsToCode() {
+  var rows = document.querySelectorAll('#tcSR .sr'), lines = [];
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i], a = r.querySelector('.sa').value, s = r.querySelector('.ss').value, v = r.querySelector('.sv').value;
+    switch (a) {
+      case 'navigate': lines.push("await page.goto('" + v + "');"); break;
+      case 'click': lines.push("await page." + selToCode(s) + ".click();"); break;
+      case 'fill': lines.push("await page." + selToCode(s) + ".fill('" + v + "');"); break;
+      case 'select': lines.push("await page." + selToCode(s) + ".selectOption('" + v + "');"); break;
+      case 'check': lines.push("await page." + selToCode(s) + ".check();"); break;
+      case 'hover': lines.push("await page." + selToCode(s) + ".hover();"); break;
+      case 'press': lines.push("await page." + selToCode(s) + ".press('" + v + "');"); break;
+      case 'wait': lines.push("await page.waitForTimeout(" + (v || 1000) + ");"); break;
+      case 'assert_visible': lines.push("await expect(page." + selToCode(s) + ").toBeVisible();"); break;
+      case 'assert_text': lines.push("await expect(page." + selToCode(s) + ").toContainText('" + v + "');"); break;
+    }
+  }
+  document.getElementById('tcCode').value = lines.join('\n');
+}
+
+function codeToSteps() {
+  var code = document.getElementById('tcCode').value;
+  if (!code.trim()) return;
+  var steps = parseCg(code);
+  if (!steps.length) { alert('No steps parsed from code'); return; }
+  document.getElementById('tcSR').innerHTML = '';
+  steps.forEach(function(s) { addSR(s); });
 }
 
 // ── Test Case tab (Scenario management) ──
@@ -492,7 +536,8 @@ function openNewTC() {
   editTcFile = null; document.getElementById('tcTi').textContent = 'New Test Case';
   document.getElementById('tcN').value = ''; document.getElementById('tcD').value = '';
   document.getElementById('tcU').value = curSys ? curSys.url : ''; document.getElementById('tcTg').value = '';
-  document.getElementById('tcSR').innerHTML = ''; addSR(); addSR();
+  document.getElementById('tcSR').innerHTML = ''; document.getElementById('tcCode').value = '';
+  addSR(); addSR();
   document.getElementById('tcMo').classList.add('on');
 }
 
@@ -506,6 +551,7 @@ function editTc(f) {
     document.getElementById('tcSR').innerHTML = '';
     (d.steps || []).forEach(function(s) { addSR(s); });
     document.getElementById('tcMo').classList.add('on');
+    setTimeout(stepsToCode, 50);
   });
 }
 
