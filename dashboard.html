@@ -65,9 +65,9 @@ input,textarea,select{background:var(--s3);border:1px solid var(--border);color:
 
 <div class="dp" id="dp2">
 <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><button class="btn btn-a" id="cgBtn" onclick="launchCg()">&#127916; Launch Codegen</button><button class="btn btn-o" onclick="openNewTC()">+ Manual</button></div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;align-items:start">
 <div class="card" style="margin:0"><div class="card-t">Test Cases</div><table class="tbl"><thead><tr><th>Name</th><th>Steps</th><th>Tags</th><th style="width:140px">Actions</th></tr></thead><tbody id="tcBody"></tbody></table></div>
-<div class="card" style="margin:0"><div class="card-t">Quick Add from Codegen</div><div class="row"><div class="fg"><label class="fl">Name</label><input id="qcN" placeholder="Test name"></div><div class="fg"><label class="fl">Tags</label><input id="qcT" placeholder="smoke, login"></div></div><div class="fg"><label class="fl">Paste codegen output</label><textarea id="qcC" placeholder="await page.goto(...)"></textarea></div><button class="btn btn-a" onclick="quickAdd()">Parse &amp; Save</button><div id="qcR" style="margin-top:10px"></div></div>
+<div class="card" style="margin:0"><div class="card-t">CodeGen</div><div class="row"><div class="fg"><label class="fl">Name</label><input id="qcN" placeholder="Test name"></div><div class="fg"><label class="fl">Tags</label><input id="qcT" placeholder="smoke, login"></div></div><div class="fg"><label class="fl">Paste codegen output</label><textarea id="qcC" placeholder="await page.goto(...)"></textarea></div><button class="btn btn-a" onclick="quickAdd()">Parse &amp; Save</button><div id="qcR" style="margin-top:10px"></div></div>
 </div>
 </div>
 
@@ -84,7 +84,7 @@ input,textarea,select{background:var(--s3);border:1px solid var(--border);color:
 <script>
 var F = function(u, o) { o = o || {}; o.headers = {'Content-Type':'application/json'}; return fetch(u, o).then(function(r){return r.json();}); };
 var E = function(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
-var curSys = null, editTcFile = null, allSystems = [], curSteps = [], selTCs = [];
+var curSys = null, editTcFile = null, allSystems = [], curSteps = [], selTCs = [], runningSc = null;
 
 function loadAll() {
   F('/api/systems').then(function(sys) {
@@ -327,18 +327,38 @@ function loadScenarios() {
     var el = document.getElementById('scList'), em = document.getElementById('scEmpty'), ra = document.getElementById('runAllBtn');
     if (!su.length) { el.innerHTML = ''; em.style.display = 'block'; ra.style.display = 'none'; return; }
     em.style.display = 'none'; ra.style.display = 'inline-flex';
-    var h = '';
-    for (var i = 0; i < su.length; i++) {
-      var s = su[i], cnt = (s.testCaseFiles || []).length;
-      h += '<div class="tc-ord" style="padding:12px 14px">' +
-        '<div class="num">' + (i + 1) + '</div>' +
-        '<div class="nm" style="flex:1"><b>' + E(s.name) + '</b><br><span style="color:var(--t3);font-size:11px">' + cnt + ' test case' + (cnt > 1 ? 's' : '') + '</span></div>' +
-        '<button class="btn btn-sm btn-a" onclick="runSc(\'' + s.file + '\',\'' + E(s.name).replace(/'/g,"\\'") + '\')">&#9654; Run</button> ' +
-        '<button class="btn btn-sm btn-o" onclick="editSc(\'' + s.file + '\')">Edit</button> ' +
-        '<button class="btn btn-sm btn-r" onclick="delSc(\'' + s.file + '\')">Del</button></div>';
-    }
-    el.innerHTML = h;
+    renderScList(su);
   });
+}
+
+function renderScList(su) {
+  if (!su) return;
+  window._scData = su;
+  var el = document.getElementById('scList'), ra = document.getElementById('runAllBtn');
+  var h = '';
+  for (var i = 0; i < su.length; i++) {
+    var s = su[i], cnt = (s.testCaseFiles || []).length;
+    var isRunning = runningSc === s.file || runningSc === '__all__';
+    var isThisRunning = runningSc === s.file;
+    var isAllRunning = runningSc === '__all__';
+    var anyRunning = !!runningSc;
+    h += '<div class="tc-ord" id="sc_' + s.file + '" style="padding:12px 14px' + (isThisRunning ? ';border-color:var(--accent);background:rgba(45,212,191,.06)' : '') + '">' +
+      '<div class="num" style="' + (isThisRunning ? 'background:var(--amber);animation:sp .8s linear infinite' : '') + '">' + (i + 1) + '</div>' +
+      '<div class="nm" style="flex:1"><b>' + E(s.name) + '</b>' +
+      (isThisRunning ? ' <span style="color:var(--amber);font-size:11px;font-weight:600"><span class="spin" style="width:10px;height:10px;border-width:1.5px;vertical-align:middle;margin-right:4px"></span>Running...</span>' : '') +
+      '<br><span style="color:var(--t3);font-size:11px">' + cnt + ' test case' + (cnt > 1 ? 's' : '') + '</span></div>';
+    if (isThisRunning) {
+      h += '<button class="btn btn-sm btn-r" onclick="stopRun()">&#9632; Stop</button>';
+    } else {
+      h += '<button class="btn btn-sm btn-a" onclick="runSc(\'' + s.file + '\',\'' + E(s.name).replace(/'/g,"\\'") + '\')"' + (anyRunning ? ' disabled' : '') + '>&#9654; Run</button> ' +
+        '<button class="btn btn-sm btn-o" onclick="editSc(\'' + s.file + '\')"' + (anyRunning ? ' disabled' : '') + '>Edit</button> ' +
+        '<button class="btn btn-sm btn-r" onclick="delSc(\'' + s.file + '\')"' + (anyRunning ? ' disabled' : '') + '>Del</button>';
+    }
+    h += '</div>';
+  }
+  el.innerHTML = h;
+  if (runningSc) { ra.disabled = true; ra.innerHTML = '<span class="spin" style="width:12px;height:12px;border-width:1.5px"></span> Running...'; }
+  else { ra.disabled = false; ra.innerHTML = '&#9654; Run All'; }
 }
 
 function editSc(f) {
@@ -371,28 +391,42 @@ function resolveScenario(suiteFile, cb) {
 }
 
 function runSc(f, nm) {
-  if (!curSys) return;
+  if (!curSys || runningSc) return;
+  runningSc = f;
+  if (window._scData) renderScList(window._scData);
   var out = document.getElementById('runOut'), oc = document.getElementById('runOutCard');
   oc.style.display = 'block'; out.textContent = 'Preparing scenario "' + nm + '"...\n';
   resolveScenario(f, function(sc) {
-    if (!sc || !sc.testCases.length) { out.textContent += 'Error: No test cases found.\n'; return; }
+    if (!sc || !sc.testCases.length) { out.textContent += 'Error: No test cases found.\n'; runningSc = null; if (window._scData) renderScList(window._scData); return; }
     out.textContent += 'Generating spec (' + sc.testCases.length + ' test cases)...\n';
     F('/api/systems/' + curSys.id + '/generate-suite', { method: 'POST', body: JSON.stringify({ name: sc.name, testCases: sc.testCases }) }).then(function(gr) {
-      if (!gr.success) { out.textContent += 'Error: ' + (gr.error || '') + '\n'; return; }
+      if (!gr.success) { out.textContent += 'Error: ' + (gr.error || '') + '\n'; runningSc = null; if (window._scData) renderScList(window._scData); return; }
       out.textContent += 'Generated: ' + gr.path + '\nRunning...\n';
       F('/api/systems/' + curSys.id + '/run', { method: 'POST', body: JSON.stringify({ file: gr.path, headed: document.getElementById('rfHead').checked }) }).then(function(r) {
-        out.textContent += '\n' + (r.output || 'Done'); loadRpt(); loadAll();
+        out.textContent += '\n' + (r.output || 'Done');
+        runningSc = null; if (window._scData) renderScList(window._scData);
+        loadRpt(); loadAll();
       });
     });
   });
 }
 
+function stopRun() {
+  F('/api/run/stop', { method: 'POST' }).then(function() {
+    runningSc = null; if (window._scData) renderScList(window._scData);
+    var out = document.getElementById('runOut');
+    out.textContent += '\n\n=== Stopped by user ===\n';
+  });
+}
+
 function runAllSc() {
-  if (!curSys) return;
+  if (!curSys || runningSc) return;
+  runningSc = '__all__';
+  if (window._scData) renderScList(window._scData);
   var out = document.getElementById('runOut'), oc = document.getElementById('runOutCard');
   oc.style.display = 'block'; out.textContent = 'Loading all scenarios...\n';
   F('/api/systems/' + curSys.id + '/suites').then(function(su) {
-    if (!su.length) { out.textContent += 'No scenarios.\n'; return; }
+    if (!su.length) { out.textContent += 'No scenarios.\n'; runningSc = null; if (window._scData) renderScList(window._scData); return; }
     out.textContent += su.length + ' scenarios found. Resolving test cases...\n';
     var resolved = [], pending = su.length;
     for (var i = 0; i < su.length; i++) {
@@ -414,10 +448,11 @@ function runAllSc() {
 function doRunAll(scenarios, out) {
   out.textContent += 'Generating combined spec (' + scenarios.length + ' scenarios)...\n';
   F('/api/systems/' + curSys.id + '/generate-multi-suite', { method: 'POST', body: JSON.stringify({ scenarios: scenarios }) }).then(function(gr) {
-    if (!gr.success) { out.textContent += 'Error: ' + (gr.error || '') + '\n'; return; }
+    if (!gr.success) { out.textContent += 'Error: ' + (gr.error || '') + '\n'; runningSc = null; if (window._scData) renderScList(window._scData); return; }
     out.textContent += 'Generated: ' + gr.path + '\nRunning all scenarios...\n\n';
     F('/api/systems/' + curSys.id + '/run', { method: 'POST', body: JSON.stringify({ file: gr.path, headed: document.getElementById('rfHead').checked }) }).then(function(r) {
       out.textContent += (r.output || 'Done') + '\n\n=== All done ===\n';
+      runningSc = null; if (window._scData) renderScList(window._scData);
       loadRpt(); loadAll();
     });
   });

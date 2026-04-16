@@ -80,7 +80,39 @@ app.post('/api/systems/:id/generate-multi-suite', (req, res) => {
 
 app.post('/api/systems/:id/generate', (req, res) => { try { const d = path.join(STEPS_DIR, req.params.id); const od = path.resolve('./tests/generated/' + req.params.id); if (!fs.existsSync(od)) fs.mkdirSync(od, { recursive: true }); const o = execSync(`npx ts-node scripts/generate.ts --stepsDir "${d}" --outDir "${od}"`, { encoding: 'utf-8', timeout: 30000 }); res.json({ success: true, output: o }); } catch (e: any) { res.json({ success: false, error: e.message }); } });
 
-app.post('/api/systems/:id/run', (req, res) => { try { const sys = getSystems().find(s => s.id === req.params.id); const af = path.join(AUTH_DIR, req.params.id + '.json'); const { file, headed, grep } = req.body; let cmd = 'npx playwright test'; if (file) cmd += ' ' + file; cmd += ' --project chromium'; if (headed) cmd += ' --headed'; if (grep) cmd += ` --grep "${grep}"`; const env = { ...process.env, BASE_URL: sys?.url || '', AUTH_FILE: fs.existsSync(af) ? af : '' }; const o = execSync(cmd, { encoding: 'utf-8', timeout: 300000, env }); const rd = path.join(REPORTS_DIR, req.params.id); if (!fs.existsSync(rd)) fs.mkdirSync(rd, { recursive: true }); const sr = path.resolve('./reports/vib-report.json'); if (fs.existsSync(sr)) fs.copyFileSync(sr, path.join(rd, 'vib-report.json')); res.json({ success: true, output: o }); } catch (e: any) { res.json({ success: false, output: e.stdout || e.message }); } });
+let runProc: any = null;
+app.post('/api/systems/:id/run', async (req, res) => {
+  const sys = getSystems().find(s => s.id === req.params.id);
+  const af = path.join(AUTH_DIR, req.params.id + '.json');
+  const { file, headed, grep } = req.body;
+  let cmd = 'npx playwright test';
+  if (file) cmd += ' ' + file;
+  cmd += ' --project chromium';
+  if (headed) cmd += ' --headed';
+  if (grep) cmd += ` --grep "${grep}"`;
+  const env = { ...process.env, BASE_URL: sys?.url || '', AUTH_FILE: fs.existsSync(af) ? af : '' };
+  try {
+    const o: string = await new Promise((resolve, reject) => {
+      runProc = exec(cmd, { encoding: 'utf-8', timeout: 300000, env }, (err, stdout, stderr) => {
+        runProc = null;
+        if (err && !stdout) reject(err);
+        else resolve(stdout || stderr || '');
+      });
+    });
+    const rd = path.join(REPORTS_DIR, req.params.id);
+    if (!fs.existsSync(rd)) fs.mkdirSync(rd, { recursive: true });
+    const sr = path.resolve('./reports/vib-report.json');
+    if (fs.existsSync(sr)) fs.copyFileSync(sr, path.join(rd, 'vib-report.json'));
+    res.json({ success: true, output: o });
+  } catch (e: any) {
+    runProc = null;
+    res.json({ success: false, output: e.stdout || e.message || 'Stopped' });
+  }
+});
+app.post('/api/run/stop', (req, res) => {
+  if (runProc) { runProc.kill('SIGTERM'); runProc = null; res.json({ success: true }); }
+  else { res.json({ success: false }); }
+});
 
 app.get('/api/systems/:id/report', (req, res) => { res.json(getSystemReport(req.params.id)); });
 app.post('/api/codegen', (req, res) => {
