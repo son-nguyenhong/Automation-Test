@@ -1,13 +1,12 @@
 import { defineConfig, devices } from '@playwright/test';
+import * as fs from 'fs';
 
 const BASE_URL = process.env.BASE_URL || 'https://ops-aad.ehr-test.vib';
+const AUTH_FILE = process.env.AUTH_FILE || './auth.json';
+const hasAuth = fs.existsSync(AUTH_FILE);
 
 export default defineConfig({
   testDir: './tests',
-
-  /* Global setup: auto-handle SSO login */
-  globalSetup: './src/core/global-setup.ts',
-
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 1,
@@ -24,10 +23,6 @@ export default defineConfig({
 
   use: {
     baseURL: BASE_URL,
-
-    /* All tests use saved auth by default */
-    storageState: './auth.json',
-
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'on-first-retry',
@@ -40,30 +35,25 @@ export default defineConfig({
   outputDir: './reports/test-results',
 
   projects: [
-    /* Default: Chromium with auth (dùng cho VIB portal) */
     {
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
         channel: 'chrome',
-        storageState: './auth.json',
+        ...(hasAuth ? { storageState: AUTH_FILE } : {}),
       },
     },
-
-    /* No-auth: cho test public sites (demo, etc) */
     {
       name: 'no-auth',
       use: {
         ...devices['Desktop Chrome'],
-        storageState: undefined,
       },
     },
-
     {
       name: 'firefox',
       use: {
         ...devices['Desktop Firefox'],
-        storageState: './auth.json',
+        ...(hasAuth ? { storageState: AUTH_FILE } : {}),
       },
     },
   ],
