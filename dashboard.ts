@@ -38,6 +38,7 @@ app.post('/api/systems/:id/connect', (req, res) => { const sys = getSystems().fi
 app.get('/api/systems/:id/connect/status', (req, res) => { res.json({ status: cSt[req.params.id] || 'idle', ...getAuthStatus(req.params.id) }); });
 
 app.get('/api/systems/:id/steps', (req, res) => { res.json(getSystemSteps(req.params.id)); });
+app.get('/api/systems/:id/steps/:file', (req, res) => { const p = path.join(STEPS_DIR, req.params.id, req.params.file); if (!fs.existsSync(p)) return res.status(404).json({ error: 'not found' }); try { res.json(JSON.parse(fs.readFileSync(p, 'utf-8'))); } catch { res.status(500).json({ error: 'parse error' }); } });
 app.post('/api/systems/:id/steps', (req, res) => { const d = path.join(STEPS_DIR, req.params.id); if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true }); const f = (req.body.name || 'test').toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.json'; fs.writeFileSync(path.join(d, f), JSON.stringify({ id: 'tc_' + Date.now(), ...req.body, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }, null, 2)); res.json({ success: true, file: f }); });
 app.post('/api/systems/:id/steps/:file', (req, res) => { const d = path.join(STEPS_DIR, req.params.id); if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true }); fs.writeFileSync(path.join(d, req.params.file), JSON.stringify({ ...req.body, updatedAt: new Date().toISOString() }, null, 2)); res.json({ success: true }); });
 app.delete('/api/systems/:id/steps/:file', (req, res) => { const p = path.join(STEPS_DIR, req.params.id, req.params.file); if (fs.existsSync(p)) fs.unlinkSync(p); res.json({ success: true }); });
@@ -56,12 +57,42 @@ app.post('/api/systems/:id/generate-suite', (req, res) => {
   c += `});\n`; fs.writeFileSync(path.join(od, fn), c); res.json({ success: true, file: fn, path: `tests/generated/${req.params.id}/${fn}` }); } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
+app.post('/api/systems/:id/generate-multi-suite', (req, res) => {
+  try {
+    const { scenarios } = req.body;
+    const od = path.join(GEN_DIR, req.params.id);
+    if (!fs.existsSync(od)) fs.mkdirSync(od, { recursive: true });
+    const fn = 'all-scenarios.spec.ts';
+    let c = `import { test, expect } from '@playwright/test';\n\ntest.setTimeout(120000);\n\n`;
+    for (const sc of scenarios) {
+      c += `test.describe('${(sc.name || 'Scenario').replace(/'/g, "\\'")}', () => {\n`;
+      for (const tc of sc.testCases) {
+        c += `  test('${(tc.name || '').replace(/'/g, "\\'")}', async ({ page }) => {\n`;
+        for (const s of tc.steps) { c += `    await test.step('${(s.description || s.action).replace(/'/g, "\\'")}', async () => {\n${sC(s, '      ')}    });\n`; }
+        c += `  });\n`;
+      }
+      c += `});\n\n`;
+    }
+    fs.writeFileSync(path.join(od, fn), c);
+    res.json({ success: true, file: fn, path: `tests/generated/${req.params.id}/${fn}` });
+  } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
 app.post('/api/systems/:id/generate', (req, res) => { try { const d = path.join(STEPS_DIR, req.params.id); const od = path.resolve('./tests/generated/' + req.params.id); if (!fs.existsSync(od)) fs.mkdirSync(od, { recursive: true }); const o = execSync(`npx ts-node scripts/generate.ts --stepsDir "${d}" --outDir "${od}"`, { encoding: 'utf-8', timeout: 30000 }); res.json({ success: true, output: o }); } catch (e: any) { res.json({ success: false, error: e.message }); } });
 
 app.post('/api/systems/:id/run', (req, res) => { try { const sys = getSystems().find(s => s.id === req.params.id); const af = path.join(AUTH_DIR, req.params.id + '.json'); const { file, headed, grep } = req.body; let cmd = 'npx playwright test'; if (file) cmd += ' ' + file; cmd += ' --project chromium'; if (headed) cmd += ' --headed'; if (grep) cmd += ` --grep "${grep}"`; const env = { ...process.env, BASE_URL: sys?.url || '', AUTH_FILE: fs.existsSync(af) ? af : '' }; const o = execSync(cmd, { encoding: 'utf-8', timeout: 300000, env }); const rd = path.join(REPORTS_DIR, req.params.id); if (!fs.existsSync(rd)) fs.mkdirSync(rd, { recursive: true }); const sr = path.resolve('./reports/vib-report.json'); if (fs.existsSync(sr)) fs.copyFileSync(sr, path.join(rd, 'vib-report.json')); res.json({ success: true, output: o }); } catch (e: any) { res.json({ success: false, output: e.stdout || e.message }); } });
 
 app.get('/api/systems/:id/report', (req, res) => { res.json(getSystemReport(req.params.id)); });
-app.post('/api/codegen', (req, res) => { exec('npx playwright codegen ' + (req.body.url || ''), { timeout: 600000 }); res.json({ success: true }); });
+app.post('/api/codegen', (req, res) => {
+  const { url, systemId } = req.body;
+  const af = systemId ? path.join(AUTH_DIR, systemId + '.json') : '';
+  const hasAuth = af && fs.existsSync(af);
+  const storageArg = hasAuth ? ` --load-storage="${af}"` : '';
+  const cmd = `npx playwright codegen${storageArg} ${url || ''}`;
+  console.log(`[codegen] ${cmd}${hasAuth ? ' (with SSO)' : ' (no auth)'}`);
+  exec(cmd, { timeout: 600000 });
+  res.json({ success: true, hasAuth });
+});
 app.get('/api/stats', (req, res) => { const sys = getSystems(); let tt = 0, tp = 0, tf = 0, cc = 0; sys.forEach(s => { tt += getSystemSteps(s.id).length; if (getAuthStatus(s.id).valid) cc++; const r = getSystemReport(s.id); if (r?.summary) { tp += r.summary.passed; tf += r.summary.failed; } }); res.json({ systemCount: sys.length, connectedCount: cc, totalTests: tt, totalPassed: tp, totalFailed: tf }); });
 app.use('/reports', express.static(REPORTS_DIR));
 app.get('/', (req, res) => {

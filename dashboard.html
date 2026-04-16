@@ -51,32 +51,35 @@ input,textarea,select{background:var(--s3);border:1px solid var(--border);color:
 <div class="main">
 <div class="overview" id="ovPage"><div class="ov-title">Systems Overview</div><div class="ov-sub">Click a system to manage.</div><div class="grid" id="ovGrid"></div></div>
 <div class="detail" id="detPage">
-<div class="det-hdr"><div class="dh-top"><div class="sys-dot" id="dDot"></div><div class="dh-name" id="dName"></div><div class="dh-env" id="dEnv"></div></div><div class="dh-url" id="dUrl"></div></div>
-<div class="det-tabs"><div class="dt on" onclick="dtab(0)">Connect</div><div class="dt" onclick="dtab(1)">Test Cases</div><div class="dt" onclick="dtab(2)">Run Test</div><div class="dt" onclick="dtab(3)">Report</div></div>
+<div class="det-hdr"><div class="dh-top"><div class="sys-dot" id="dDot"></div><div class="dh-name" id="dName"></div><div class="dh-env" id="dEnv"></div><button class="btn btn-sm" id="hdrConBtn" onclick="openSSO()" style="margin-left:auto">&#128274; Connect SSO</button></div><div class="dh-url" id="dUrl"></div></div>
+<div class="det-tabs"><div class="dt on" onclick="dtab(0)">Report</div><div class="dt" onclick="dtab(1)">Test Case</div><div class="dt" onclick="dtab(2)">Configure</div></div>
 <div class="det-body">
 
-<div class="dp on" id="dp0"><div id="conSt"></div><div class="card"><div class="card-t">SSO Connection</div><p style="color:var(--t3);margin-bottom:14px">Click Connect &rarr; Chrome opens &rarr; login &rarr; close browser &rarr; session saved.</p><button class="btn btn-a big" id="conBtn" onclick="doConnect()">Connect SSO</button></div><div class="card" id="conInfo" style="display:none"><div class="card-t">Session Info</div><div id="conDetail" style="color:var(--t2)"></div></div></div>
+<div class="dp on" id="dp0"><div class="stats-row"><div class="stat"><div class="n" style="color:var(--blue)" id="rpT">-</div><div class="l">Total</div></div><div class="stat"><div class="n" style="color:var(--green)" id="rpP">-</div><div class="l">Passed</div></div><div class="stat"><div class="n" style="color:var(--red)" id="rpF">-</div><div class="l">Failed</div></div><div class="stat"><div class="n" style="color:var(--amber)" id="rpS">-</div><div class="l">Skipped</div></div></div><div class="card" style="padding:0"><table class="tbl"><thead><tr><th>Test</th><th>Suite</th><th>Duration</th><th>Status</th></tr></thead><tbody id="rpBody"></tbody></table></div></div>
 
 <div class="dp" id="dp1">
-<div class="card" style="border-color:rgba(45,212,191,.2)"><div class="card-t">&#127916; Launch Codegen</div><p style="color:var(--t3);margin-bottom:14px">Opens Playwright recorder. Interact with the page to record. Close browser when done, then paste output below.</p><button class="btn btn-a big" id="cgBtn" onclick="launchCg()">&#9654; Launch Codegen Browser</button></div>
-<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="card-t" style="margin:0">Test Cases</div><div style="display:flex;gap:6px"><button class="btn btn-sm btn-o" onclick="openNewTC()">+ Manual</button><button class="btn btn-sm btn-a" onclick="genAll()">Generate All</button></div></div><table class="tbl"><thead><tr><th>Name</th><th>Steps</th><th>Tags</th><th style="width:180px">Actions</th></tr></thead><tbody id="tcBody"></tbody></table></div>
-<div class="card"><div class="card-t">Quick Add from Codegen</div><div class="row"><div class="fg"><label class="fl">Name</label><input id="qcN" placeholder="Test name"></div><div class="fg"><label class="fl">Tags</label><input id="qcT" placeholder="smoke, login"></div></div><div class="fg"><label class="fl">Paste codegen output</label><textarea id="qcC" placeholder="await page.goto(...)"></textarea></div><button class="btn btn-a" onclick="quickAdd()">Parse &amp; Save</button><div id="qcR" style="margin-top:10px"></div></div>
-</div>
-
-<div class="dp" id="dp2">
-<div class="card"><div class="card-t">&#9745; Select test cases for this run</div><p style="color:var(--t3);margin-bottom:14px">Tick test cases to include. They execute in order below.</p><div id="tcList"></div><div id="tcEmpty" style="display:none" class="empty"><div class="empty-icon">&#128209;</div>No test cases. Create in Test Cases tab first.</div></div>
-<div class="card" id="orderCard" style="display:none"><div class="card-t">&#8597; Execution order</div><div id="tcOrder"></div><div class="row" style="margin-top:14px"><div class="fg"><label class="fl">Run name</label><input id="suName" value="Custom run"></div><div class="fg"><label class="fl">Options</label><div style="padding-top:6px"><label style="cursor:pointer;font-size:12px"><input type="checkbox" id="rfHead"> Show browser</label></div></div></div><div style="display:flex;gap:8px;margin-bottom:6px"><button class="btn btn-a big" id="runBtn" onclick="doRun()" style="flex:1">&#9654; Generate &amp; Run</button><button class="btn btn-o" onclick="saveSuite()">Save suite</button></div></div>
-<div class="card" id="suiteCard" style="display:none"><div class="card-t">&#128193; Saved suites</div><div id="suiteList"></div></div>
+<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="card-t" style="margin:0">&#128203; Test Scenarios</div><div style="display:flex;gap:6px"><button class="btn btn-sm btn-o" onclick="openBuild()">+ Create</button><button class="btn btn-sm btn-a" id="runAllBtn" onclick="runAllSc()" style="display:none">&#9654; Run All</button></div></div><div id="scList"></div><div id="scEmpty" class="empty"><div class="empty-icon">&#128203;</div>No scenarios yet. Click "+ Create" to build from test cases.</div></div>
+<div class="card" style="padding:12px 20px"><label style="cursor:pointer;font-size:12px;display:flex;align-items:center;gap:8px"><input type="checkbox" id="rfHead" style="width:auto"> Show browser when running</label></div>
 <div class="card" id="runOutCard" style="display:none"><div class="card-t">&#128187; Output</div><div class="term" id="runOut"></div></div>
 </div>
 
-<div class="dp" id="dp3"><div class="stats-row"><div class="stat"><div class="n" style="color:var(--blue)" id="rpT">-</div><div class="l">Total</div></div><div class="stat"><div class="n" style="color:var(--green)" id="rpP">-</div><div class="l">Passed</div></div><div class="stat"><div class="n" style="color:var(--red)" id="rpF">-</div><div class="l">Failed</div></div><div class="stat"><div class="n" style="color:var(--amber)" id="rpS">-</div><div class="l">Skipped</div></div></div><div class="card" style="padding:0"><table class="tbl"><thead><tr><th>Test</th><th>Suite</th><th>Duration</th><th>Status</th></tr></thead><tbody id="rpBody"></tbody></table></div></div>
+<div class="dp" id="dp2">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><button class="btn btn-a" id="cgBtn" onclick="launchCg()">&#127916; Launch Codegen</button><button class="btn btn-o" onclick="openNewTC()">+ Manual</button></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">
+<div class="card" style="margin:0"><div class="card-t">Test Cases</div><table class="tbl"><thead><tr><th>Name</th><th>Steps</th><th>Tags</th><th style="width:140px">Actions</th></tr></thead><tbody id="tcBody"></tbody></table></div>
+<div class="card" style="margin:0"><div class="card-t">Quick Add from Codegen</div><div class="row"><div class="fg"><label class="fl">Name</label><input id="qcN" placeholder="Test name"></div><div class="fg"><label class="fl">Tags</label><input id="qcT" placeholder="smoke, login"></div></div><div class="fg"><label class="fl">Paste codegen output</label><textarea id="qcC" placeholder="await page.goto(...)"></textarea></div><button class="btn btn-a" onclick="quickAdd()">Parse &amp; Save</button><div id="qcR" style="margin-top:10px"></div></div>
+</div>
+</div>
 
 </div></div></div></div>
 
 <div class="mo" id="addSysMo"><div class="mo-c"><h3>Add System</h3><div class="fg"><label class="fl">Name</label><input id="asN" placeholder="OPS Portal"></div><div class="fg"><label class="fl">URL</label><input id="asU" placeholder="https://..."></div><div class="fg"><label class="fl">Description</label><input id="asD"></div><div class="row"><div class="fg"><label class="fl">Environment</label><select id="asE"><option>test</option><option>staging</option><option>production</option></select></div><div class="fg"><label class="fl">Tags</label><input id="asT" placeholder="core"></div></div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-o" onclick="closeMo('addSysMo')">Cancel</button><button class="btn btn-a" onclick="saveSys()">Save</button></div></div></div>
 
 <div class="mo" id="tcMo"><div class="mo-c"><h3 id="tcTi">New Test Case</h3><div class="fg"><label class="fl">Name</label><input id="tcN"></div><div class="fg"><label class="fl">Description</label><input id="tcD"></div><div class="row"><div class="fg"><label class="fl">Base URL</label><input id="tcU"></div><div class="fg"><label class="fl">Tags</label><input id="tcTg"></div></div><div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 6px"><label class="fl" style="margin:0">Steps</label><button class="btn btn-sm btn-o" onclick="addSR()">+ Step</button></div><div id="tcSR"></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn btn-o" onclick="closeMo('tcMo')">Cancel</button><button class="btn btn-a" onclick="saveTc()">Save</button></div></div></div>
+
+<div class="mo" id="ssoMo"><div class="mo-c" style="width:480px"><h3 style="display:flex;align-items:center;gap:8px">&#128274; SSO Connection<span class="sys-dot" id="mDot" style="margin-left:auto"></span></h3><div id="conSt"></div><div style="margin-bottom:14px"><p style="color:var(--t3);margin-bottom:14px;font-size:12px">Click Connect &rarr; Chrome opens &rarr; login &rarr; close browser &rarr; session saved.</p><button class="btn btn-a big" id="conBtn" onclick="doConnect()">Connect SSO</button></div><div id="conInfo" style="display:none;margin-bottom:14px"><div style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:14px"><div style="font-size:11px;color:var(--t3);text-transform:uppercase;font-weight:600;margin-bottom:6px">Session Info</div><div id="conDetail" style="color:var(--t2);font-size:13px"></div></div></div><div style="display:flex;justify-content:flex-end"><button class="btn btn-o" onclick="closeMo('ssoMo')">Close</button></div></div></div>
+
+<div class="mo" id="buildMo"><div class="mo-c" style="width:620px"><h3>&#128295; Build Scenario</h3><div class="fg"><label class="fl">Scenario name</label><input id="suName" placeholder="e.g. Login &rarr; Create Request"></div><p style="color:var(--t3);margin:10px 0 8px;font-size:12px">Select test cases to include (from Configure tab):</p><div id="tcList"></div><div id="tcEmpty" style="display:none" class="empty"><div class="empty-icon">&#128209;</div>No test cases. Create in Configure tab first.</div><div id="orderCard" style="display:none;margin-top:12px"><div style="font-size:11px;color:var(--t3);text-transform:uppercase;font-weight:600;margin-bottom:6px">Execution order</div><div id="tcOrder"></div></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn btn-o" onclick="closeMo('buildMo')">Cancel</button><button class="btn btn-a" onclick="saveSuite()">&#128190; Save Scenario</button></div></div></div>
 
 <script>
 var F = function(u, o) { o = o || {}; o.headers = {'Content-Type':'application/json'}; return fetch(u, o).then(function(r){return r.json();}); };
@@ -141,15 +144,24 @@ function selectSys(id) {
   document.getElementById('dEnv').textContent = curSys.env || 'test';
   document.getElementById('dUrl').textContent = curSys.url;
   document.getElementById('dDot').className = 'sys-dot ' + (curSys.auth.valid ? 'ok' : 'off');
+  updateHdrBtn(curSys.auth.valid);
   renderSidebar(); dtab(0); checkCon(); loadTc();
 }
+
+function openSSO() { if (!curSys) return; checkCon(); document.getElementById('ssoMo').classList.add('on'); }
 
 function dtab(i) {
   var tabs = document.querySelectorAll('.dt');
   var panels = document.querySelectorAll('.dp');
   for (var j = 0; j < tabs.length; j++) { tabs[j].classList.toggle('on', j === i); panels[j].classList.toggle('on', j === i); }
-  if (i === 2) { renderTCList(); loadSuites(); }
-  if (i === 3) loadRpt();
+  if (i === 0) loadRpt();
+  if (i === 1) { loadScenarios(); }
+}
+
+function updateHdrBtn(valid) {
+  var hb = document.getElementById('hdrConBtn');
+  if (valid) { hb.innerHTML = '&#128994; Connected'; hb.className = 'btn btn-sm btn-o'; }
+  else { hb.innerHTML = '&#128274; Connect SSO'; hb.className = 'btn btn-sm btn-a'; }
 }
 
 function checkCon() {
@@ -157,18 +169,24 @@ function checkCon() {
   F('/api/systems/' + curSys.id + '/connect/status').then(function(s) {
     var btn = document.getElementById('conBtn'), st = document.getElementById('conSt');
     var info = document.getElementById('conInfo'), det = document.getElementById('conDetail');
+    var mDot = document.getElementById('mDot');
     if (s.valid) {
       st.innerHTML = '<div class="sb sb-ok">Session active.</div>';
       btn.textContent = 'Re-connect'; btn.className = 'btn btn-o big'; btn.disabled = false;
       info.style.display = 'block'; det.innerHTML = 'Last: ' + E(s.lastLogin) + ' | Expires: ' + (8 - s.ageHours).toFixed(1) + 'h';
       document.getElementById('dDot').className = 'sys-dot ok';
+      mDot.className = 'sys-dot ok';
+      updateHdrBtn(true);
     } else if (s.status === 'waiting' || s.status === 'launching') {
       st.innerHTML = '<div class="sb sb-w">Browser open. Login then close browser.</div>';
       btn.innerHTML = '<span class="spin"></span> Waiting...'; btn.disabled = true; info.style.display = 'none';
+      mDot.className = 'sys-dot off';
     } else {
       st.innerHTML = '<div class="sb sb-e">Not connected.</div>';
       btn.textContent = 'Connect SSO'; btn.className = 'btn btn-a big'; btn.disabled = false;
       info.style.display = 'none'; document.getElementById('dDot').className = 'sys-dot off';
+      mDot.className = 'sys-dot off';
+      updateHdrBtn(false);
     }
   });
 }
@@ -184,8 +202,11 @@ function launchCg() {
   if (!curSys) return;
   var btn = document.getElementById('cgBtn');
   btn.innerHTML = '<span class="spin"></span> Launching...'; btn.disabled = true;
-  F('/api/codegen', { method: 'POST', body: JSON.stringify({ url: curSys.url }) });
-  setTimeout(function() { btn.innerHTML = '&#9654; Launch Codegen Browser'; btn.disabled = false; }, 2000);
+  F('/api/codegen', { method: 'POST', body: JSON.stringify({ url: curSys.url, systemId: curSys.id }) }).then(function(r) {
+    btn.innerHTML = r && r.hasAuth ? '&#127916; Codegen (SSO loaded)' : '&#127916; Codegen (no auth)';
+    btn.disabled = false;
+    setTimeout(function() { btn.innerHTML = '&#127916; Launch Codegen'; }, 4000);
+  });
 }
 
 function loadTc() {
@@ -200,15 +221,12 @@ function loadTc() {
       var tags = (s.tags || []).map(function(t) { return '<span class="tag">' + E(t) + '</span>'; }).join('');
       h += '<tr><td><b>' + E(s.name) + '</b></td><td>' + s.steps.length + '</td><td>' + tags + '</td>' +
         '<td style="white-space:nowrap"><button class="btn btn-sm btn-o" onclick="editTc(\'' + s.file + '\')">Edit</button> ' +
-        '<button class="btn btn-sm btn-a" onclick="gen1(\'' + s.file + '\')">Gen</button> ' +
         '<button class="btn btn-sm btn-r" onclick="delTc(\'' + s.file + '\')">Del</button></td></tr>';
     }
     tb.innerHTML = h;
   });
 }
 
-function gen1(f) { F('/api/systems/' + curSys.id + '/generate', { method: 'POST', body: JSON.stringify({ file: f }) }).then(function() { alert('Generated!'); }); }
-function genAll() { F('/api/systems/' + curSys.id + '/generate', { method: 'POST', body: JSON.stringify({}) }).then(function() { alert('All generated!'); }); }
 function delTc(f) { if (confirm('Delete?')) { F('/api/systems/' + curSys.id + '/steps/' + f, { method: 'DELETE' }).then(function() { loadTc(); loadAll(); }); } }
 
 function quickAdd() {
@@ -250,7 +268,10 @@ function extractSel(l) {
   return 'unknown';
 }
 
-// ── Run Test tab ──
+// ── Test Case tab (Scenario management) ──
+function openBuild() { selTCs = []; document.getElementById('suName').value = ''; renderTCList(); document.getElementById('buildMo').classList.add('on'); }
+function closeBuild() { document.getElementById('buildMo').classList.remove('on'); selTCs = []; }
+
 function renderTCList() {
   var el = document.getElementById('tcList'), em = document.getElementById('tcEmpty');
   if (!curSteps.length) { el.innerHTML = ''; em.style.display = 'block'; document.getElementById('orderCard').style.display = 'none'; return; }
@@ -261,7 +282,7 @@ function renderTCList() {
     var chk = selTCs.some(function(x) { return x.file === s.file; });
     var tags = (s.tags || []).map(function(t) { return '<span class="tag">' + E(t) + '</span>'; }).join('');
     h += '<div class="tc-ck' + (chk ? ' sel' : '') + '" onclick="tglTC(this,\'' + s.file + '\')">' +
-      '<input type="checkbox" ' + (chk ? 'checked' : '') + ' onclick="event.stopPropagation();tglTC(this.parentElement,\'' + s.file + '\')">' +
+      '<input type="checkbox" ' + (chk ? 'checked' : '') + ' onclick="event.stopPropagation();tglTC(this.parentElement,\'' + s.file + '\')" style="width:auto">' +
       '<div class="nm">' + E(s.name) + '</div><div class="ct">' + s.steps.length + ' steps</div>' + tags + '</div>';
   }
   el.innerHTML = h;
@@ -290,59 +311,117 @@ function renderOrder() {
 
 function rmSel(i) { selTCs.splice(i, 1); renderTCList(); }
 
-function doRun() {
-  if (!curSys || !selTCs.length) { alert('Select test cases first'); return; }
-  var btn = document.getElementById('runBtn'), out = document.getElementById('runOut'), oc = document.getElementById('runOutCard');
-  btn.innerHTML = '<span class="spin"></span> Running...'; btn.disabled = true;
-  oc.style.display = 'block'; out.textContent = 'Generating spec...\n';
-  var nm = document.getElementById('suName').value || 'Run';
-  F('/api/systems/' + curSys.id + '/generate-suite', { method: 'POST', body: JSON.stringify({ name: nm, testCases: selTCs }) }).then(function(gr) {
-    if (!gr.success) { out.textContent = 'Error: ' + (gr.error || ''); btn.innerHTML = '&#9654; Generate & Run'; btn.disabled = false; return; }
-    out.textContent += 'Generated: ' + gr.path + '\n\nRunning Playwright...\n';
-    F('/api/systems/' + curSys.id + '/run', { method: 'POST', body: JSON.stringify({ file: gr.path, headed: document.getElementById('rfHead').checked }) }).then(function(r) {
-      out.textContent += r.output || 'Done';
-      btn.innerHTML = '&#9654; Generate & Run'; btn.disabled = false;
-      loadRpt(); loadAll();
-    });
-  });
-}
-
 function saveSuite() {
   if (!curSys || !selTCs.length) { alert('Select test cases'); return; }
-  var nm = document.getElementById('suName').value || 'Suite';
+  var nm = document.getElementById('suName').value;
+  if (!nm) { alert('Enter scenario name'); return; }
   var files = selTCs.map(function(t) { return t.file; });
-  F('/api/systems/' + curSys.id + '/suites', { method: 'POST', body: JSON.stringify({ name: nm, testCaseFiles: files }) }).then(function() { alert('Saved!'); loadSuites(); });
-}
-
-function loadSuites() {
-  if (!curSys) return;
-  F('/api/systems/' + curSys.id + '/suites').then(function(su) {
-    var el = document.getElementById('suiteCard'), l = document.getElementById('suiteList');
-    if (!su.length) { el.style.display = 'none'; return; }
-    el.style.display = 'block';
-    var h = '';
-    for (var i = 0; i < su.length; i++) {
-      var s = su[i];
-      h += '<div class="tc-ord"><div class="nm"><b>' + E(s.name) + '</b> <span style="color:var(--t3)">' + (s.testCaseFiles || []).length + ' tests</span></div>' +
-        '<button class="btn btn-sm btn-a" onclick="ldSu(\'' + s.file + '\')">Load</button> ' +
-        '<button class="btn btn-sm btn-r" onclick="delSu(\'' + s.file + '\')">Del</button></div>';
-    }
-    l.innerHTML = h;
+  F('/api/systems/' + curSys.id + '/suites', { method: 'POST', body: JSON.stringify({ name: nm, testCaseFiles: files }) }).then(function() {
+    closeBuild(); closeMo('buildMo'); loadScenarios();
   });
 }
 
-function ldSu(f) {
+function loadScenarios() {
+  if (!curSys) return;
+  F('/api/systems/' + curSys.id + '/suites').then(function(su) {
+    var el = document.getElementById('scList'), em = document.getElementById('scEmpty'), ra = document.getElementById('runAllBtn');
+    if (!su.length) { el.innerHTML = ''; em.style.display = 'block'; ra.style.display = 'none'; return; }
+    em.style.display = 'none'; ra.style.display = 'inline-flex';
+    var h = '';
+    for (var i = 0; i < su.length; i++) {
+      var s = su[i], cnt = (s.testCaseFiles || []).length;
+      h += '<div class="tc-ord" style="padding:12px 14px">' +
+        '<div class="num">' + (i + 1) + '</div>' +
+        '<div class="nm" style="flex:1"><b>' + E(s.name) + '</b><br><span style="color:var(--t3);font-size:11px">' + cnt + ' test case' + (cnt > 1 ? 's' : '') + '</span></div>' +
+        '<button class="btn btn-sm btn-a" onclick="runSc(\'' + s.file + '\',\'' + E(s.name).replace(/'/g,"\\'") + '\')">&#9654; Run</button> ' +
+        '<button class="btn btn-sm btn-o" onclick="editSc(\'' + s.file + '\')">Edit</button> ' +
+        '<button class="btn btn-sm btn-r" onclick="delSc(\'' + s.file + '\')">Del</button></div>';
+    }
+    el.innerHTML = h;
+  });
+}
+
+function editSc(f) {
   if (!curSys) return;
   F('/api/systems/' + curSys.id + '/suites').then(function(su) {
     var found = su.find(function(s) { return s.file === f; });
     if (!found) return;
     selTCs = curSteps.filter(function(s) { return found.testCaseFiles.indexOf(s.file) > -1; });
     document.getElementById('suName').value = found.name;
+    document.getElementById('buildMo').classList.add('on');
     renderTCList();
   });
 }
 
-function delSu(f) { if (!curSys) return; if (confirm('Delete?')) { F('/api/systems/' + curSys.id + '/suites/' + f, { method: 'DELETE' }).then(function() { loadSuites(); }); } }
+function delSc(f) { if (!curSys) return; if (confirm('Delete scenario?')) { F('/api/systems/' + curSys.id + '/suites/' + f, { method: 'DELETE' }).then(function() { loadScenarios(); }); } }
+
+function resolveScenario(suiteFile, cb) {
+  F('/api/systems/' + curSys.id + '/suites').then(function(su) {
+    var found = su.find(function(s) { return s.file === suiteFile; });
+    if (!found) { cb(null); return; }
+    var tcs = curSteps.filter(function(s) { return found.testCaseFiles.indexOf(s.file) > -1; });
+    // preserve order from suite
+    var ordered = [];
+    for (var i = 0; i < found.testCaseFiles.length; i++) {
+      var tc = tcs.find(function(t) { return t.file === found.testCaseFiles[i]; });
+      if (tc) ordered.push(tc);
+    }
+    cb({ name: found.name, testCases: ordered });
+  });
+}
+
+function runSc(f, nm) {
+  if (!curSys) return;
+  var out = document.getElementById('runOut'), oc = document.getElementById('runOutCard');
+  oc.style.display = 'block'; out.textContent = 'Preparing scenario "' + nm + '"...\n';
+  resolveScenario(f, function(sc) {
+    if (!sc || !sc.testCases.length) { out.textContent += 'Error: No test cases found.\n'; return; }
+    out.textContent += 'Generating spec (' + sc.testCases.length + ' test cases)...\n';
+    F('/api/systems/' + curSys.id + '/generate-suite', { method: 'POST', body: JSON.stringify({ name: sc.name, testCases: sc.testCases }) }).then(function(gr) {
+      if (!gr.success) { out.textContent += 'Error: ' + (gr.error || '') + '\n'; return; }
+      out.textContent += 'Generated: ' + gr.path + '\nRunning...\n';
+      F('/api/systems/' + curSys.id + '/run', { method: 'POST', body: JSON.stringify({ file: gr.path, headed: document.getElementById('rfHead').checked }) }).then(function(r) {
+        out.textContent += '\n' + (r.output || 'Done'); loadRpt(); loadAll();
+      });
+    });
+  });
+}
+
+function runAllSc() {
+  if (!curSys) return;
+  var out = document.getElementById('runOut'), oc = document.getElementById('runOutCard');
+  oc.style.display = 'block'; out.textContent = 'Loading all scenarios...\n';
+  F('/api/systems/' + curSys.id + '/suites').then(function(su) {
+    if (!su.length) { out.textContent += 'No scenarios.\n'; return; }
+    out.textContent += su.length + ' scenarios found. Resolving test cases...\n';
+    var resolved = [], pending = su.length;
+    for (var i = 0; i < su.length; i++) {
+      (function(s) {
+        var tcs = curSteps.filter(function(st) { return (s.testCaseFiles || []).indexOf(st.file) > -1; });
+        var ordered = [];
+        for (var j = 0; j < (s.testCaseFiles || []).length; j++) {
+          var tc = tcs.find(function(t) { return t.file === s.testCaseFiles[j]; });
+          if (tc) ordered.push(tc);
+        }
+        resolved.push({ name: s.name, testCases: ordered });
+        pending--;
+        if (pending === 0) doRunAll(resolved, out);
+      })(su[i]);
+    }
+  });
+}
+
+function doRunAll(scenarios, out) {
+  out.textContent += 'Generating combined spec (' + scenarios.length + ' scenarios)...\n';
+  F('/api/systems/' + curSys.id + '/generate-multi-suite', { method: 'POST', body: JSON.stringify({ scenarios: scenarios }) }).then(function(gr) {
+    if (!gr.success) { out.textContent += 'Error: ' + (gr.error || '') + '\n'; return; }
+    out.textContent += 'Generated: ' + gr.path + '\nRunning all scenarios...\n\n';
+    F('/api/systems/' + curSys.id + '/run', { method: 'POST', body: JSON.stringify({ file: gr.path, headed: document.getElementById('rfHead').checked }) }).then(function(r) {
+      out.textContent += (r.output || 'Done') + '\n\n=== All done ===\n';
+      loadRpt(); loadAll();
+    });
+  });
+}
 
 function loadRpt() {
   if (!curSys) return;
