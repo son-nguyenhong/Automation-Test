@@ -58,9 +58,12 @@ input,textarea,select{background:var(--s3);border:1px solid var(--border);color:
 <div class="dp on" id="dp0"><div class="stats-row"><div class="stat"><div class="n" style="color:var(--blue)" id="rpT">-</div><div class="l">Total</div></div><div class="stat"><div class="n" style="color:var(--green)" id="rpP">-</div><div class="l">Passed</div></div><div class="stat"><div class="n" style="color:var(--red)" id="rpF">-</div><div class="l">Failed</div></div><div class="stat"><div class="n" style="color:var(--amber)" id="rpS">-</div><div class="l">Skipped</div></div></div><div class="card" style="padding:0"><table class="tbl"><thead><tr><th>Test</th><th>Suite</th><th>Duration</th><th>Status</th></tr></thead><tbody id="rpBody"></tbody></table></div></div>
 
 <div class="dp" id="dp1">
-<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="card-t" style="margin:0">&#128203; Test Scenarios</div><div style="display:flex;gap:6px"><button class="btn btn-sm btn-o" onclick="openBuild()">+ Create</button><button class="btn btn-sm btn-a" id="runAllBtn" onclick="runAllSc()" style="display:none">&#9654; Run All</button></div></div><div id="scList"></div><div id="scEmpty" class="empty"><div class="empty-icon">&#128203;</div>No scenarios yet. Click "+ Create" to build from test cases.</div></div>
-<div class="card" style="padding:12px 20px"><label style="cursor:pointer;font-size:12px;display:flex;align-items:center;gap:8px"><input type="checkbox" id="rfHead" style="width:auto"> Show browser when running</label></div>
-<div class="card" id="runOutCard" style="display:none"><div class="card-t">&#128187; Output</div><div class="term" id="runOut"></div></div>
+<div style="display:grid;grid-template-columns:7fr 3fr;gap:14px;align-items:start">
+<div>
+<div class="card" style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="card-t" style="margin:0">&#128203; Test Scenarios</div><div style="display:flex;gap:8px;align-items:center"><label style="cursor:pointer;font-size:11px;display:flex;align-items:center;gap:5px;color:var(--t2)"><input type="checkbox" id="rfHead" style="width:auto"> Show browser</label><button class="btn btn-sm btn-o" onclick="openBuild()">+ Create</button><button class="btn btn-sm btn-a" id="runAllBtn" onclick="runAllSc()" style="display:none">&#9654; Run All</button></div></div><div id="scList"></div><div id="scEmpty" class="empty"><div class="empty-icon">&#128203;</div>No scenarios yet. Click "+ Create" to build from test cases.</div></div>
+</div>
+<div class="card" id="runOutCard" style="margin:0;position:sticky;top:24px"><div class="card-t">&#128187; Output</div><div class="term" id="runOut" style="max-height:60vh;overflow-y:auto">Ready. Click Run to start.</div></div>
+</div>
 </div>
 
 <div class="dp" id="dp2">

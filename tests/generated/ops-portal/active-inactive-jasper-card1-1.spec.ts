@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Active/Inactive - JASPER_CARD1', () => {
+test.describe('Active/Inactive - JASPER_CARD1 1', () => {
   test.setTimeout(120000);
 
-  test('JASPER_CARD1 - Active => InActive', async ({ page }) => {
+  test('2 JASPER_CARD1 - Active => InActive	', async ({ page }) => {
     await test.step('Go to https://ops-aad.ehr-test.vib/', async () => {
       await page.goto('https://ops-aad.ehr-test.vib/');
       await page.waitForLoadState('domcontentloaded');
@@ -35,6 +35,9 @@ test.describe('Active/Inactive - JASPER_CARD1', () => {
     });
     await test.step('Click role=switch[name="Active Inactive"]', async () => {
       await page.getByRole('switch', { name: 'Active Inactive' }).click();
+    });
+    await test.step('Assert visible', async () => {
+      await expect(page.getByText('Inactive')).toBeVisible();
     });
   });
 

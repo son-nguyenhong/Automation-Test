@@ -91,23 +91,27 @@ app.post('/api/systems/:id/run', async (req, res) => {
   if (headed) cmd += ' --headed';
   if (grep) cmd += ` --grep "${grep}"`;
   const env = { ...process.env, BASE_URL: sys?.url || '', AUTH_FILE: fs.existsSync(af) ? af : '' };
+  let output = '', success = false;
   try {
-    const o: string = await new Promise((resolve, reject) => {
-      runProc = exec(cmd, { encoding: 'utf-8', timeout: 300000, env }, (err, stdout, stderr) => {
+    output = await new Promise((resolve, reject) => {
+      runProc = exec(cmd, { encoding: 'utf-8', timeout: 300000, env }, (err: any, stdout, stderr) => {
         runProc = null;
-        if (err && !stdout) reject(err);
-        else resolve(stdout || stderr || '');
+        resolve(err ? (err.stdout || stdout || stderr || err.message) : (stdout || ''));
       });
     });
+    success = !output.includes('failed');
+  } catch (e: any) {
+    runProc = null;
+    output = e.stdout || e.message || 'Stopped';
+  }
+  // Always copy report
+  try {
     const rd = path.join(REPORTS_DIR, req.params.id);
     if (!fs.existsSync(rd)) fs.mkdirSync(rd, { recursive: true });
     const sr = path.resolve('./reports/vib-report.json');
     if (fs.existsSync(sr)) fs.copyFileSync(sr, path.join(rd, 'vib-report.json'));
-    res.json({ success: true, output: o });
-  } catch (e: any) {
-    runProc = null;
-    res.json({ success: false, output: e.stdout || e.message || 'Stopped' });
-  }
+  } catch {}
+  res.json({ success, output });
 });
 app.post('/api/run/stop', (req, res) => {
   if (runProc) { runProc.kill('SIGTERM'); runProc = null; res.json({ success: true }); }

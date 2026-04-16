@@ -1,8 +1,8 @@
 {
-  "id": "su_1776312454719",
+  "id": "su_1776313375397",
   "name": "Active/Inactive - JASPER_CARD1",
   "testCaseFiles": [
-    "jasper-card1.json"
+    "jasper-card1-active-inactive.json"
   ],
-  "createdAt": "2026-04-16T04:07:34.719Z"
+  "createdAt": "2026-04-16T04:22:55.397Z"
 }
