@@ -47,13 +47,25 @@ app.get('/api/systems/:id/suites', (req, res) => { res.json(getSystemSuites(req.
 app.post('/api/systems/:id/suites', (req, res) => { const d = path.join(SUITES_DIR, req.params.id); if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true }); const f = (req.body.name || 'suite').toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.json'; fs.writeFileSync(path.join(d, f), JSON.stringify({ id: 'su_' + Date.now(), ...req.body, createdAt: new Date().toISOString() }, null, 2)); res.json({ success: true, file: f }); });
 app.delete('/api/systems/:id/suites/:file', (req, res) => { const p = path.join(SUITES_DIR, req.params.id, req.params.file); if (fs.existsSync(p)) fs.unlinkSync(p); res.json({ success: true }); });
 
-function bL(sel: string) { let m: any; if (m = sel.match(/^role=(\w+)\[name="(.*)"\]$/)) return `getByRole('${m[1]}', { name: '${m[2]}' })`; if (m = sel.match(/^text="(.*)"$/)) return `getByText('${m[1]}')`; if (m = sel.match(/^label="(.*)"$/)) return `getByLabel('${m[1]}')`; if (m = sel.match(/^placeholder="(.*)"$/)) return `getByPlaceholder('${m[1]}')`; return `locator('${sel}')`; }
+function bL(sel: string) {
+  let suffix = '', base = sel;
+  let sm: any;
+  if (sm = base.match(/>>nth=(\d+)$/)) { suffix = `.nth(${sm[1]})`; base = base.replace(/>>nth=\d+$/, ''); }
+  else if (base.endsWith('>>first')) { suffix = '.first()'; base = base.replace('>>first', ''); }
+  else if (base.endsWith('>>last')) { suffix = '.last()'; base = base.replace('>>last', ''); }
+  let m: any;
+  if (m = base.match(/^role=(\w+)\[name="(.*)"\]$/)) return `getByRole('${m[1]}', { name: '${m[2]}' })${suffix}`;
+  if (m = base.match(/^text="(.*)"$/)) return `getByText('${m[1]}')${suffix}`;
+  if (m = base.match(/^label="(.*)"$/)) return `getByLabel('${m[1]}')${suffix}`;
+  if (m = base.match(/^placeholder="(.*)"$/)) return `getByPlaceholder('${m[1]}')${suffix}`;
+  return `locator('${base}')${suffix}`;
+}
 function sC(s: any, i: string) { const l = s.selector ? bL(s.selector) : ''; const v = (s.value || '').replace(/'/g, "\\'"); switch (s.action) { case 'navigate': return `${i}await page.goto('${v}');\n${i}await page.waitForLoadState('domcontentloaded');\n`; case 'click': return `${i}await page.${l}.click();\n`; case 'fill': return `${i}await page.${l}.fill('${v}');\n`; case 'select': return `${i}await page.${l}.selectOption('${v}');\n`; case 'check': return `${i}await page.${l}.check();\n`; case 'hover': return `${i}await page.${l}.hover();\n`; case 'press': return `${i}await page.${l}.press('${v}');\n`; case 'wait': return `${i}await page.waitForTimeout(${s.value || 1000});\n`; case 'assert_visible': return `${i}await expect(page.${l}).toBeVisible();\n`; case 'assert_text': return `${i}await expect(page.${l}).toContainText('${(s.expected || '').replace(/'/g, "\\'")}');\n`; default: return ''; } }
 
 app.post('/api/systems/:id/generate-suite', (req, res) => {
   try { const { name, testCases } = req.body; const od = path.join(GEN_DIR, req.params.id); if (!fs.existsSync(od)) fs.mkdirSync(od, { recursive: true }); const fn = (name || 'run').toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.spec.ts';
   let c = `import { test, expect } from '@playwright/test';\n\ntest.describe('${(name || 'Run').replace(/'/g, "\\'")}', () => {\n  test.setTimeout(120000);\n\n`;
-  for (const tc of testCases) { c += `  test('${(tc.name || '').replace(/'/g, "\\'")}', async ({ page }) => {\n`; for (const s of tc.steps) { c += `    await test.step('${(s.description || s.action).replace(/'/g, "\\'")}', async () => {\n${sC(s, '      ')}    });\n`; } c += `  });\n\n`; }
+  for (const tc of testCases) { c += `  test('${(tc.name || '').replace(/'/g, "\\'")}', async ({ page }) => {\n`; let si = 0; for (const s of tc.steps) { si++; const desc = (s.description || s.action).replace(/'/g, "\\'"); c += `    await test.step('${desc}', async () => {\n${sC(s, '      ')}      await test.info().attach('Step ${si} - ${desc}', { body: await page.screenshot(), contentType: 'image/png' });\n    });\n`; } c += `  });\n\n`; }
   c += `});\n`; fs.writeFileSync(path.join(od, fn), c); res.json({ success: true, file: fn, path: `tests/generated/${req.params.id}/${fn}` }); } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
@@ -68,7 +80,8 @@ app.post('/api/systems/:id/generate-multi-suite', (req, res) => {
       c += `test.describe('${(sc.name || 'Scenario').replace(/'/g, "\\'")}', () => {\n`;
       for (const tc of sc.testCases) {
         c += `  test('${(tc.name || '').replace(/'/g, "\\'")}', async ({ page }) => {\n`;
-        for (const s of tc.steps) { c += `    await test.step('${(s.description || s.action).replace(/'/g, "\\'")}', async () => {\n${sC(s, '      ')}    });\n`; }
+        let si = 0;
+        for (const s of tc.steps) { si++; const desc = (s.description || s.action).replace(/'/g, "\\'"); c += `    await test.step('${desc}', async () => {\n${sC(s, '      ')}      await test.info().attach('Step ${si} - ${desc}', { body: await page.screenshot(), contentType: 'image/png' });\n    });\n`; }
         c += `  });\n`;
       }
       c += `});\n\n`;
@@ -109,8 +122,15 @@ app.post('/api/systems/:id/run', async (req, res) => {
     const rd = path.join(REPORTS_DIR, req.params.id);
     if (!fs.existsSync(rd)) fs.mkdirSync(rd, { recursive: true });
     const sr = path.resolve('./reports/vib-report.json');
-    if (fs.existsSync(sr)) fs.copyFileSync(sr, path.join(rd, 'vib-report.json'));
-  } catch {}
+    if (fs.existsSync(sr)) {
+      fs.copyFileSync(sr, path.join(rd, 'vib-report.json'));
+      console.log(`[report] Copied to ${path.join(rd, 'vib-report.json')}`);
+    } else {
+      console.log(`[report] WARNING: ${sr} not found! Reporter may have crashed.`);
+    }
+  } catch (re: any) {
+    console.log(`[report] Copy error: ${re.message}`);
+  }
   res.json({ success, output });
 });
 app.post('/api/run/stop', (req, res) => {
@@ -131,6 +151,7 @@ app.post('/api/codegen', (req, res) => {
 });
 app.get('/api/stats', (req, res) => { const sys = getSystems(); let tt = 0, tp = 0, tf = 0, cc = 0; sys.forEach(s => { tt += getSystemSteps(s.id).length; if (getAuthStatus(s.id).valid) cc++; const r = getSystemReport(s.id); if (r?.summary) { tp += r.summary.passed; tf += r.summary.failed; } }); res.json({ systemCount: sys.length, connectedCount: cc, totalTests: tt, totalPassed: tp, totalFailed: tf }); });
 app.use('/reports', express.static(REPORTS_DIR));
+app.use('/artifacts', express.static(path.resolve('.')));
 app.get('/', (req, res) => {
   res.sendFile(path.resolve('./dashboard.html'));
 });

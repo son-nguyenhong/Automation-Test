@@ -17,6 +17,7 @@ interface TestRecord {
   error?: string;
   retry: number;
   steps: { title: string; duration: number; error?: string }[];
+  attachments: { name: string; contentType: string; path?: string }[];
 }
 
 /**
@@ -27,6 +28,7 @@ interface TestRecord {
  * - Duration tracking
  * - Error details with stack traces
  * - Filter by status
+ * - Screenshots & video evidence
  */
 class VIBReporter implements Reporter {
   private results: TestRecord[] = [];
@@ -47,19 +49,58 @@ class VIBReporter implements Reporter {
     const icon = status === 'passed' ? '✅' : status === 'failed' ? '❌' : '⏭️';
     console.log(`${icon} ${test.title} (${result.duration}ms)`);
 
+    const attachments: { name: string; contentType: string; path?: string }[] = [];
+    try {
+      const artifactDir = path.join(this.outputDir, 'test-results');
+      if (!fs.existsSync(artifactDir)) fs.mkdirSync(artifactDir, { recursive: true });
+
+      for (const a of (result.attachments || [])) {
+        try {
+          if (a.path && fs.existsSync(a.path)) {
+            attachments.push({
+              name: a.name,
+              contentType: a.contentType,
+              path: path.relative(process.cwd(), a.path).replace(/\\/g, '/'),
+            });
+          } else if (a.body) {
+            const safeName = test.title.replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 50);
+            const safAtt = (a.name || 'att').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 60);
+            const ext = a.contentType.includes('png') ? '.png' : a.contentType.includes('webm') ? '.webm' : a.contentType.includes('jpeg') ? '.jpg' : '.bin';
+            const fname = `${safeName}_${safAtt}_r${result.retry}${ext}`;
+            const fpath = path.join(artifactDir, fname);
+            fs.writeFileSync(fpath, a.body);
+            attachments.push({
+              name: a.name,
+              contentType: a.contentType,
+              path: path.relative(process.cwd(), fpath).replace(/\\/g, '/'),
+            });
+          }
+        } catch (ae) {
+          console.error(`  ⚠️ Failed to save attachment "${a.name}": ${(ae as Error).message}`);
+        }
+      }
+    } catch (e) {
+      console.error(`  ⚠️ Attachment processing error: ${(e as Error).message}`);
+    }
+
     this.results.push({
       title: test.title,
       suite: test.parent?.title || 'Default',
       status,
       duration: result.duration,
-      error: result.error?.message,
+      error: this.stripAnsi(result.error?.message || ''),
       retry: result.retry,
       steps: result.steps.map((s) => ({
-        title: s.title,
+        title: this.stripAnsi(s.title),
         duration: s.duration,
-        error: s.error?.message,
+        error: s.error ? this.stripAnsi(s.error.message) : undefined,
       })),
+      attachments,
     });
+  }
+
+  private stripAnsi(str: string): string {
+    return str.replace(/\x1b\[[0-9;]*m/g, '').replace(/\u001b\[[0-9;]*m/g, '');
   }
 
   async onEnd(result: FullResult) {
@@ -85,10 +126,18 @@ class VIBReporter implements Reporter {
     console.log(`⏱️  Duration: ${(totalDuration / 1000).toFixed(1)}s`);
     console.log(`${'─'.repeat(50)}\n`);
 
+    // Generate JSON report FIRST (dashboard depends on this)
+    try {
+      this.generateJSONReport(passed, failed, skipped, totalDuration);
+    } catch (e) {
+      console.error(`⚠️ JSON report failed: ${(e as Error).message}`);
+    }
     // Generate HTML report
-    this.generateHTMLReport(passed, failed, skipped, totalDuration);
-    // Generate JSON report
-    this.generateJSONReport(passed, failed, skipped, totalDuration);
+    try {
+      this.generateHTMLReport(passed, failed, skipped, totalDuration);
+    } catch (e) {
+      console.error(`⚠️ HTML report failed: ${(e as Error).message}`);
+    }
   }
 
   private generateHTMLReport(

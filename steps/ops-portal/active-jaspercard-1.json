@@ -1,0 +1,132 @@
+{
+  "id": "tc_1776331408042",
+  "name": "Active_JasperCard_1",
+  "description": "From codegen",
+  "baseUrl": "https://ops-aad.ehr-test.vib",
+  "tags": [
+    "Inactive => Active"
+  ],
+  "steps": [
+    {
+      "id": "s0",
+      "action": "navigate",
+      "value": "https://ops-aad.ehr-test.vib/",
+      "description": "Go to https://ops-aad.ehr-test.vib/"
+    },
+    {
+      "id": "s1",
+      "action": "assert_visible",
+      "selector": "role=button[name=\"Account settings\"]",
+      "description": "Assert visible"
+    },
+    {
+      "id": "s2",
+      "action": "click",
+      "selector": "text=\"Account management\"",
+      "description": "Click text=\"Account management\""
+    },
+    {
+      "id": "s3",
+      "action": "assert_visible",
+      "selector": "role=heading[name=\"Chọn dịch vụ\"]",
+      "description": "Assert visible"
+    },
+    {
+      "id": "s4",
+      "action": "click",
+      "selector": "text=\"Account Management\">>nth=1",
+      "description": "Click text=\"Account Management\">>nth=1"
+    },
+    {
+      "id": "s5",
+      "action": "navigate",
+      "value": "https://ops-aad.ehr-test.vib/am/accountManagementSystem#username=nga.ct",
+      "description": "Go to https://ops-aad.ehr-test.vib/am/accountManagementSystem#username=nga.ct"
+    },
+    {
+      "id": "s6",
+      "action": "assert_visible",
+      "selector": "role=img[name=\"search\"]>>first",
+      "description": "Assert visible"
+    },
+    {
+      "id": "s7",
+      "action": "press",
+      "selector": "body",
+      "value": "ControlOrMeta+r",
+      "description": "Press ControlOrMeta+r"
+    },
+    {
+      "id": "s8",
+      "action": "navigate",
+      "value": "https://ops-aad.ehr-test.vib/am/accountManagementSystem#username=nga.ct",
+      "description": "Go to https://ops-aad.ehr-test.vib/am/accountManagementSystem#username=nga.ct"
+    },
+    {
+      "id": "s9",
+      "action": "assert_visible",
+      "selector": "role=button[name=\"Account settings\"]",
+      "description": "Assert visible"
+    },
+    {
+      "id": "s10",
+      "action": "click",
+      "selector": "role=textbox[name=\"Search by name, code, or job\"]",
+      "description": "Click role=textbox[name=\"Search by name, code, or job\"]"
+    },
+    {
+      "id": "s11",
+      "action": "fill",
+      "selector": "role=textbox[name=\"Search by name, code, or job\"]",
+      "value": "06369",
+      "description": "Fill \"06369\""
+    },
+    {
+      "id": "s12",
+      "action": "click",
+      "selector": "text=\"06369\"",
+      "description": "Click text=\"06369\""
+    },
+    {
+      "id": "s13",
+      "action": "assert_visible",
+      "selector": "role=img[name=\"code-sandbox\"]>>first",
+      "description": "Assert visible"
+    },
+    {
+      "id": "s14",
+      "action": "click",
+      "selector": "role=textbox[name=\"System name...\"]",
+      "description": "Click role=textbox[name=\"System name...\"]"
+    },
+    {
+      "id": "s15",
+      "action": "fill",
+      "selector": "role=textbox[name=\"System name...\"]",
+      "value": "JASPER_CARD1",
+      "description": "Fill \"JASPER_CARD1\""
+    },
+    {
+      "id": "s16",
+      "action": "assert_text",
+      "selector": "role=switch",
+      "expected": "Inactive",
+      "description": "Assert \"Inactive\""
+    },
+    {
+      "id": "s17",
+      "action": "click",
+      "selector": "role=switch[name=\"Active Inactive\"]",
+      "description": "Click role=switch[name=\"Active Inactive\"]"
+    },
+    {
+      "id": "s18",
+      "action": "assert_text",
+      "selector": "role=switch",
+      "expected": "Active",
+      "description": "Assert \"Active\""
+    }
+  ],
+  "createdAt": "2026-04-16T09:23:28.042Z",
+  "updatedAt": "2026-04-16T09:23:28.042Z"
+}

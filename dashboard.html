@@ -55,14 +55,14 @@ input,textarea,select{background:var(--s3);border:1px solid var(--border);color:
 <div class="det-tabs"><div class="dt on" onclick="dtab(0)">Report</div><div class="dt" onclick="dtab(1)">Test Case</div><div class="dt" onclick="dtab(2)">Configure</div></div>
 <div class="det-body">
 
-<div class="dp on" id="dp0"><div class="stats-row"><div class="stat"><div class="n" style="color:var(--blue)" id="rpT">-</div><div class="l">Total</div></div><div class="stat"><div class="n" style="color:var(--green)" id="rpP">-</div><div class="l">Passed</div></div><div class="stat"><div class="n" style="color:var(--red)" id="rpF">-</div><div class="l">Failed</div></div><div class="stat"><div class="n" style="color:var(--amber)" id="rpS">-</div><div class="l">Skipped</div></div></div><div class="card" style="padding:0"><table class="tbl"><thead><tr><th>Test</th><th>Suite</th><th>Duration</th><th>Status</th></tr></thead><tbody id="rpBody"></tbody></table></div></div>
+<div class="dp on" id="dp0"><div class="stats-row"><div class="stat"><div class="n" style="color:var(--blue)" id="rpT">-</div><div class="l">Total</div></div><div class="stat"><div class="n" style="color:var(--green)" id="rpP">-</div><div class="l">Passed</div></div><div class="stat"><div class="n" style="color:var(--red)" id="rpF">-</div><div class="l">Failed</div></div><div class="stat"><div class="n" style="color:var(--amber)" id="rpS">-</div><div class="l">Skipped</div></div></div><div class="card" style="padding:0"><table class="tbl"><thead><tr><th>Test</th><th>Suite</th><th>Status</th><th style="width:80px">Re-Test</th><th style="width:80px">Evidence</th></tr></thead><tbody id="rpBody"></tbody></table></div></div>
 
 <div class="dp" id="dp1">
 <div style="display:grid;grid-template-columns:7fr 3fr;gap:14px;align-items:start">
-<div>
+<div style="min-width:0">
 <div class="card" style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="card-t" style="margin:0">&#128203; Test Scenarios</div><div style="display:flex;gap:8px;align-items:center"><label style="cursor:pointer;font-size:11px;display:flex;align-items:center;gap:5px;color:var(--t2)"><input type="checkbox" id="rfHead" style="width:auto"> Show browser</label><button class="btn btn-sm btn-o" onclick="openBuild()">+ Create</button><button class="btn btn-sm btn-a" id="runAllBtn" onclick="runAllSc()" style="display:none">&#9654; Run All</button></div></div><div id="scList"></div><div id="scEmpty" class="empty"><div class="empty-icon">&#128203;</div>No scenarios yet. Click "+ Create" to build from test cases.</div></div>
 </div>
-<div class="card" id="runOutCard" style="margin:0;position:sticky;top:24px"><div class="card-t">&#128187; Output</div><div class="term" id="runOut" style="max-height:60vh;overflow-y:auto">Ready. Click Run to start.</div></div>
+<div class="card" id="runOutCard" style="margin:0;position:sticky;top:24px;min-width:0;overflow:hidden"><div class="card-t">&#128187; Output</div><div class="term" id="runOut" style="max-height:60vh;overflow-y:auto;overflow-x:auto;word-break:break-all">Ready. Click Run to start.</div></div>
 </div>
 </div>
 
@@ -88,6 +88,8 @@ input,textarea,select{background:var(--s3);border:1px solid var(--border);color:
 <div class="mo" id="ssoMo"><div class="mo-c" style="width:480px"><h3 style="display:flex;align-items:center;gap:8px">&#128274; SSO Connection<span class="sys-dot" id="mDot" style="margin-left:auto"></span></h3><div id="conSt"></div><div style="margin-bottom:14px"><p style="color:var(--t3);margin-bottom:14px;font-size:12px">Click Connect &rarr; Chrome opens &rarr; login &rarr; close browser &rarr; session saved.</p><button class="btn btn-a big" id="conBtn" onclick="doConnect()">Connect SSO</button></div><div id="conInfo" style="display:none;margin-bottom:14px"><div style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:14px"><div style="font-size:11px;color:var(--t3);text-transform:uppercase;font-weight:600;margin-bottom:6px">Session Info</div><div id="conDetail" style="color:var(--t2);font-size:13px"></div></div></div><div style="display:flex;justify-content:flex-end"><button class="btn btn-o" onclick="closeMo('ssoMo')">Close</button></div></div></div>
 
 <div class="mo" id="buildMo"><div class="mo-c" style="width:620px"><h3>&#128295; Build Scenario</h3><div class="fg"><label class="fl">Scenario name</label><input id="suName" placeholder="e.g. Login &rarr; Create Request"></div><p style="color:var(--t3);margin:10px 0 8px;font-size:12px">Select test cases to include (from Configure tab):</p><div id="tcList"></div><div id="tcEmpty" style="display:none" class="empty"><div class="empty-icon">&#128209;</div>No test cases. Create in Configure tab first.</div><div id="orderCard" style="display:none;margin-top:12px"><div style="font-size:11px;color:var(--t3);text-transform:uppercase;font-weight:600;margin-bottom:6px">Execution order</div><div id="tcOrder"></div></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn btn-o" onclick="closeMo('buildMo')">Cancel</button><button class="btn btn-a" onclick="saveSuite()">&#128190; Save Scenario</button></div></div></div>
+
+<div class="mo" id="eviMo"><div class="mo-c" style="width:800px;max-height:90vh;overflow-y:auto"><h3 id="eviTitle" style="margin-bottom:14px">&#128269; Evidence</h3><div id="eviBody"></div><div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn btn-o" onclick="closeMo('eviMo')">Close</button></div></div></div>
 
 <script>
 var F = function(u, o) { o = o || {}; o.headers = {'Content-Type':'application/json'}; return fetch(u, o).then(function(r){return r.json();}); };
@@ -254,8 +256,21 @@ function quickAdd() {
 function parseCg(code) {
   var steps = [], idx = 0;
   var lines = code.split('\n');
+  var inTemplate = false;
   for (var i = 0; i < lines.length; i++) {
     var l = lines[i].trim(), m;
+    // Skip multiline template literals (toMatchAriaSnapshot etc)
+    if (l.indexOf('`') > -1) {
+      var ticks = (l.match(/`/g) || []).length;
+      if (ticks === 1) { inTemplate = !inTemplate; continue; }
+    }
+    if (inTemplate) continue;
+    // Skip boilerplate
+    if (!l || l.indexOf('import ') === 0 || l.indexOf('test.use') === 0 || l.indexOf('storageState') > -1 || l.indexOf('test(') === 0 || l === '});' || l === '});') continue;
+    // Skip unsupported complex assertions
+    if (l.indexOf('toMatchAriaSnapshot') > -1) continue;
+    if (l.indexOf('toHaveURL') > -1) continue;
+    // Parse supported patterns
     if (m = l.match(/page\.goto\(['"](.+?)['"]\)/)) { steps.push({ id: 's' + idx++, action: 'navigate', value: m[1], description: 'Go to ' + m[1] }); continue; }
     if (l.indexOf('.click(') > -1) { var x = extractSel(l); steps.push({ id: 's' + idx++, action: 'click', selector: x, description: 'Click ' + x }); continue; }
     if (m = l.match(/\.fill\(['"](.+?)['"]\)/)) { var x = extractSel(l); steps.push({ id: 's' + idx++, action: 'fill', selector: x, value: m[1], description: 'Fill "' + m[1] + '"' }); continue; }
@@ -268,22 +283,39 @@ function parseCg(code) {
 }
 
 function extractSel(l) {
-  var m;
-  if (m = l.match(/getByRole\(['"](.+?)['"],\s*\{.*?name:\s*['"](.+?)['"]/)) return 'role=' + m[1] + '[name="' + m[2] + '"]';
-  if (m = l.match(/getByText\(['"](.+?)['"]\)/)) return 'text="' + m[1] + '"';
-  if (m = l.match(/getByLabel\(['"](.+?)['"]\)/)) return 'label="' + m[1] + '"';
-  if (m = l.match(/locator\(['"](.+?)['"]\)/)) return m[1];
-  return 'unknown';
+  var m, base = '', suffix = '';
+  // Capture suffix: .nth(N), .first(), .last()
+  var sm;
+  if (sm = l.match(/\.nth\((\d+)\)/)) suffix = '>>nth=' + sm[1];
+  else if (l.indexOf('.first()') > -1) suffix = '>>first';
+  else if (l.indexOf('.last()') > -1) suffix = '>>last';
+  // Extract base selector
+  if (m = l.match(/getByRole\(['"](.+?)['"],\s*\{.*?name:\s*['"](.+?)['"]/)) base = 'role=' + m[1] + '[name="' + m[2] + '"]';
+  else if (m = l.match(/getByRole\(['"](.+?)['"]\)/)) base = 'role=' + m[1];
+  else if (m = l.match(/getByText\(['"](.+?)['"]\)/)) base = 'text="' + m[1] + '"';
+  else if (m = l.match(/getByLabel\(['"](.+?)['"]\)/)) base = 'label="' + m[1] + '"';
+  else if (m = l.match(/getByPlaceholder\(['"](.+?)['"]\)/)) base = 'placeholder="' + m[1] + '"';
+  else if (m = l.match(/locator\(['"](.+?)['"]\)/)) base = m[1];
+  else base = 'unknown';
+  return base + suffix;
 }
 
 function selToCode(sel) {
-  var m;
-  if (m = (sel||'').match(/^role=(\w+)\[name="(.*)"\]$/)) return "getByRole('" + m[1] + "', { name: '" + m[2] + "' })";
-  if (m = (sel||'').match(/^text="(.*)"$/)) return "getByText('" + m[1] + "')";
-  if (m = (sel||'').match(/^label="(.*)"$/)) return "getByLabel('" + m[1] + "')";
-  if (m = (sel||'').match(/^placeholder="(.*)"$/)) return "getByPlaceholder('" + m[1] + "')";
-  if (sel) return "locator('" + sel + "')";
-  return "locator('TODO')";
+  var m, suffix = '', base = sel || '';
+  // Extract suffix
+  if (m = (base).match(/>>nth=(\d+)$/)) { suffix = '.nth(' + m[1] + ')'; base = base.replace(/>>nth=\d+$/, ''); }
+  else if (base.indexOf('>>first') > -1) { suffix = '.first()'; base = base.replace('>>first', ''); }
+  else if (base.indexOf('>>last') > -1) { suffix = '.last()'; base = base.replace('>>last', ''); }
+  // Convert base
+  var code = '';
+  if (m = base.match(/^role=(\w+)\[name="(.*)"\]$/)) code = "getByRole('" + m[1] + "', { name: '" + m[2] + "' })";
+  else if (m = base.match(/^role=(\w+)$/)) code = "getByRole('" + m[1] + "')";
+  else if (m = base.match(/^text="(.*)"$/)) code = "getByText('" + m[1] + "')";
+  else if (m = base.match(/^label="(.*)"$/)) code = "getByLabel('" + m[1] + "')";
+  else if (m = base.match(/^placeholder="(.*)"$/)) code = "getByPlaceholder('" + m[1] + "')";
+  else if (base) code = "locator('" + base + "')";
+  else code = "locator('TODO')";
+  return code + suffix;
 }
 
 function stepsToCode() {
@@ -388,13 +420,14 @@ function renderScList(su) {
     var isRunning = runningSc === s.file || runningSc === '__all__';
     var isThisRunning = runningSc === s.file;
     var isAllRunning = runningSc === '__all__';
+    var isActive = isThisRunning || isAllRunning;
     var anyRunning = !!runningSc;
-    h += '<div class="tc-ord" id="sc_' + s.file + '" style="padding:12px 14px' + (isThisRunning ? ';border-color:var(--accent);background:rgba(45,212,191,.06)' : '') + '">' +
-      '<div class="num" style="' + (isThisRunning ? 'background:var(--amber);animation:sp .8s linear infinite' : '') + '">' + (i + 1) + '</div>' +
+    h += '<div class="tc-ord" id="sc_' + s.file + '" style="padding:12px 14px' + (isActive ? ';border-color:var(--accent);background:rgba(45,212,191,.06)' : '') + '">' +
+      '<div class="num" style="' + (isActive ? 'background:var(--amber);animation:sp .8s linear infinite' : '') + '">' + (i + 1) + '</div>' +
       '<div class="nm" style="flex:1"><b>' + E(s.name) + '</b>' +
-      (isThisRunning ? ' <span style="color:var(--amber);font-size:11px;font-weight:600"><span class="spin" style="width:10px;height:10px;border-width:1.5px;vertical-align:middle;margin-right:4px"></span>Running...</span>' : '') +
+      (isActive ? ' <span style="color:var(--amber);font-size:11px;font-weight:600"><span class="spin" style="width:10px;height:10px;border-width:1.5px;vertical-align:middle;margin-right:4px"></span>Running...</span>' : '') +
       '<br><span style="color:var(--t3);font-size:11px">' + cnt + ' test case' + (cnt > 1 ? 's' : '') + '</span></div>';
-    if (isThisRunning) {
+    if (isActive) {
       h += '<button class="btn btn-sm btn-r" onclick="stopRun()">&#9632; Stop</button>';
     } else {
       h += '<button class="btn btn-sm btn-a" onclick="runSc(\'' + s.file + '\',\'' + E(s.name).replace(/'/g,"\\'") + '\')"' + (anyRunning ? ' disabled' : '') + '>&#9654; Run</button> ' +
@@ -509,19 +542,106 @@ function loadRpt() {
   if (!curSys) return;
   F('/api/systems/' + curSys.id + '/report').then(function(r) {
     var tb = document.getElementById('rpBody');
-    if (!r || !r.results) { tb.innerHTML = '<tr><td colspan="4"><div class="empty"><div class="empty-icon">&#128202;</div>No report yet.</div></td></tr>'; return; }
+    if (!r || !r.results) { tb.innerHTML = '<tr><td colspan="5"><div class="empty"><div class="empty-icon">&#128202;</div>No report yet.</div></td></tr>'; return; }
+    window._rptData = r.results;
     document.getElementById('rpT').textContent = r.summary.total;
     document.getElementById('rpP').textContent = r.summary.passed;
     document.getElementById('rpF').textContent = r.summary.failed;
     document.getElementById('rpS').textContent = r.summary.skipped || 0;
-    var h = '';
-    for (var i = 0; i < r.results.length; i++) {
-      var t = r.results[i];
-      var bc = t.status === 'passed' ? 'bp' : t.status === 'failed' ? 'bf' : 'bs';
-      h += '<tr><td>' + E(t.title) + '</td><td>' + E(t.suite) + '</td><td>' + t.duration + 'ms</td><td><span class="badge ' + bc + '">' + t.status + '</span></td></tr>';
-    }
-    tb.innerHTML = h;
+    // Load scenarios for re-test mapping
+    F('/api/systems/' + curSys.id + '/suites').then(function(su) {
+      window._suites = su || [];
+      var h = '';
+      for (var i = 0; i < r.results.length; i++) {
+        var t = r.results[i];
+        var bc = t.status === 'passed' ? 'bp' : t.status === 'failed' ? 'bf' : 'bs';
+        var att = t.attachments || [];
+        var hasImg = att.some(function(a) { return a.contentType && a.contentType.indexOf('image') > -1; });
+        var hasVid = att.some(function(a) { return a.contentType && a.contentType.indexOf('video') > -1; });
+        var evBtns = '<button class="btn btn-sm btn-o" onclick="showEvidence(' + i + ')" style="padding:3px 8px;font-size:10px">&#128269; View</button>';
+        var reBtn = '<button class="btn btn-sm btn-a" onclick="reTest(\'' + E(t.suite).replace(/'/g,"\\'") + '\')" style="padding:3px 8px;font-size:10px">&#9654; Run</button>';
+        h += '<tr><td>' + E(t.title) + '</td><td>' + E(t.suite) + '</td><td><span class="badge ' + bc + '">' + t.status + '</span></td><td>' + reBtn + '</td><td>' + evBtns + '</td></tr>';
+      }
+      tb.innerHTML = h;
+    });
   });
+}
+
+function reTest(suiteName) {
+  var su = window._suites || [];
+  var found = su.find(function(s) { return s.name === suiteName; });
+  if (found) {
+    dtab(1);
+    setTimeout(function() { runSc(found.file, found.name); }, 200);
+  } else {
+    alert('Scenario "' + suiteName + '" not found. It may have been deleted.');
+  }
+}
+
+function showEvidence(idx) {
+  var t = window._rptData[idx];
+  if (!t) return;
+  document.getElementById('eviTitle').innerHTML = '&#128269; ' + E(t.title) + ' <span class="badge ' + (t.status === 'passed' ? 'bp' : t.status === 'failed' ? 'bf' : 'bs') + '">' + t.status + '</span>';
+  var h = '<div style="font-size:12px;color:var(--t2);margin-bottom:14px">Suite: ' + E(t.suite) + ' &bull; Duration: ' + t.duration + 'ms' + (t.retry > 0 ? ' &bull; Retry #' + t.retry : '') + '</div>';
+  if (t.error) {
+    h += '<div style="margin-bottom:14px"><div class="fl" style="margin-bottom:4px">Error</div><div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:6px;padding:10px;font-family:var(--mono);font-size:11px;color:#fca5a5;white-space:pre-wrap;max-height:200px;overflow-y:auto">' + E(t.error) + '</div></div>';
+  }
+  var att = t.attachments || [];
+  var vids = att.filter(function(a) { return a.contentType && a.contentType.indexOf('video') > -1; });
+  // Build step screenshot map: "Step N" → attachment
+  var stepImgs = {};
+  for (var a = 0; a < att.length; a++) {
+    var m = (att[a].name || '').match(/^Step (\d+)/);
+    if (m && att[a].contentType && att[a].contentType.indexOf('image') > -1) {
+      stepImgs[parseInt(m[1])] = att[a];
+    }
+  }
+  // Other screenshots not matching step pattern
+  var otherImgs = att.filter(function(a) { return a.contentType && a.contentType.indexOf('image') > -1 && !(a.name || '').match(/^Step \d+/); });
+  // Steps with inline screenshots
+  if (t.steps && t.steps.length) {
+    h += '<div class="fl" style="margin:10px 0 6px">Steps (' + t.steps.length + ')</div>';
+    var stepNum = 0;
+    for (var i = 0; i < t.steps.length; i++) {
+      var s = t.steps[i];
+      var isHook = s.title.indexOf('Hook') > -1 || s.title.indexOf('Cleanup') > -1;
+      if (!isHook) stepNum++;
+      var icon = s.error ? '&#10060;' : '&#9989;';
+      h += '<div style="border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden">';
+      h += '<div style="display:flex;justify-content:space-between;padding:8px 12px;font-size:12px;background:var(--s2)">';
+      h += '<span>' + icon + ' <b>Step ' + (isHook ? '' : stepNum) + '</b> ' + E(s.title) + '</span>';
+      h += '<span style="color:var(--t3)">' + s.duration + 'ms</span></div>';
+      if (s.error) {
+        h += '<div style="padding:8px 12px;font-family:var(--mono);font-size:10px;color:#fca5a5;background:rgba(239,68,68,.05);border-top:1px solid var(--border)">' + E(s.error) + '</div>';
+      }
+      var img = stepImgs[stepNum];
+      if (img && !isHook) {
+        var src = '/artifacts/' + (img.path || '');
+        h += '<div style="padding:8px 12px;border-top:1px solid var(--border)"><img src="' + src + '" style="width:100%;border-radius:6px;cursor:pointer" onclick="window.open(this.src,\'_blank\')" title="Click to open full size"></div>';
+      }
+      h += '</div>';
+    }
+  }
+  // Other screenshots (failure screenshots, etc)
+  if (otherImgs.length) {
+    h += '<div class="fl" style="margin:14px 0 6px">Other screenshots (' + otherImgs.length + ')</div>';
+    for (var i = 0; i < otherImgs.length; i++) {
+      var src = '/artifacts/' + (otherImgs[i].path || '');
+      h += '<div style="margin-bottom:8px"><div style="font-size:11px;color:var(--t3);margin-bottom:4px">' + E(otherImgs[i].name) + '</div><img src="' + src + '" style="width:100%;border-radius:8px;border:1px solid var(--border);cursor:pointer" onclick="window.open(this.src,\'_blank\')"></div>';
+    }
+  }
+  if (vids.length) {
+    h += '<div class="fl" style="margin:14px 0 6px">Videos (' + vids.length + ')</div>';
+    for (var i = 0; i < vids.length; i++) {
+      var src = '/artifacts/' + (vids[i].path || '');
+      h += '<div style="margin-bottom:8px"><div style="font-size:11px;color:var(--t3);margin-bottom:4px">' + E(vids[i].name) + '</div><video src="' + src + '" controls style="width:100%;border-radius:8px;border:1px solid var(--border)"></video></div>';
+    }
+  }
+  if (!att.length && !t.error && (!t.steps || !t.steps.length)) {
+    h += '<div class="empty" style="padding:20px"><div class="empty-icon">&#128247;</div>No evidence captured.</div>';
+  }
+  document.getElementById('eviBody').innerHTML = h;
+  document.getElementById('eviMo').classList.add('on');
 }
 
 // ── Modals ──
